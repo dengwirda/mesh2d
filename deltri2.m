@@ -112,6 +112,7 @@ function [vert,conn,tria,tnum] = ...
 
 %------------------------------------ keep "interior" tria's  
     tria = tria(tnum>+0,:);
+    tnum = tnum(tnum>+0,:);
 
 end
 
