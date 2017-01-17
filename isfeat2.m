@@ -10,6 +10,13 @@ function [is] = isfeat2(pp,ee,tt)
 %   Email           : engwirda@mit.edu
 %   Last updated    : 16/01/2017
 
+%---------------------------------------------- basic checks    
+    if (~isnumeric(pp) || ~isnumeric(ee) || ...
+        ~isnumeric(tt) )
+        error('isfeat2:incorrectInputClass' , ...
+            'Incorrect input class.') ;
+    end
+
 %---------------------------------------------- basic checks
     if (ndims(pp) ~= +2 || ndims(ee) ~= +2 || ...
         ndims(tt) ~= +2 )
