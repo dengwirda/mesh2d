@@ -35,19 +35,19 @@ function [vert,conn,tria,tnum] = refine2(varargin)
 %   inement employed. The 'DELFRONT' algorithm is typically
 %   slower, but produces higher quality output.
 %
-% - OPTS.RHO2 = {1.05} -- the maximum allowable radius-edge 
+% - OPTS.RHO2 = {1.025} -- the maximum allowable radius-edge 
 %   ratio. Refinement proceeds until all interior triangles
 %   satisfy the radius-edge threshold. Smaller radius-edge
 %   ratios lead to improved triangle shape, with RHO2=1 req-
 %   uiring that all angles exceed 30 degrees. Setting RHO2<1 
 %   may lead to non-convergence.
 %
-% - OPTS.SIZ1 = {1.33} -- the normalised relative-length th-
+% - OPTS.SIZ1 = {1.333} -- the normalised rel.-length th-
 %   reshold for edge-elements. Each exterior edge is refined 
 %   until LL/HH<SIZ1, where LL is the edge-length, HH is the
 %   edge-centred mesh-size value.
 % 
-% - OPTS.SIZ2 = {1.30} -- the normalised relative-length th-
+% - OPTS.SIZ2 = {1.300} -- the normalised rel.-length th-
 %   reshold for tria-elements. Each interior tria is refined
 %   until RE/HH<SIZ2, where RE is an effective tria length, 
 %   based on the circumradius, HH is the tria-centred mesh-
@@ -72,7 +72,7 @@ function [vert,conn,tria,tnum] = refine2(varargin)
 
 %   Darren Engwirda : 2017 --
 %   Email           : engwirda@mit.edu
-%   Last updated    : 16/01/2017
+%   Last updated    : 17/01/2017
     
     addpath('aabb-tree');
 
@@ -573,7 +573,7 @@ function [opts] = makeopt(opts)
     end
     
     if (~isfield(opts,'rho2'))
-        opts.rho2 = 1.05;
+        opts.rho2 = 1.025;
     else
     if (~isnumeric(opts.rho2))
         error('refine2:incorrectInputClass', ...
@@ -586,7 +586,7 @@ function [opts] = makeopt(opts)
     end
     
     if (~isfield(opts,'off2'))
-        opts.off2 = 0.95;
+        opts.off2 = 0.933;
     else
     if (~isnumeric(opts.off2))
         error('refine2:incorrectInputClass', ...
@@ -599,7 +599,7 @@ function [opts] = makeopt(opts)
     end
     
     if (~isfield(opts,'siz1'))
-        opts.siz1 = 1.33;
+        opts.siz1 = 1.333;
     else
     if (~isnumeric(opts.siz1))
         error('refine2:incorrectInputClass', ...
@@ -612,7 +612,7 @@ function [opts] = makeopt(opts)
     end
     
     if (~isfield(opts,'siz2'))
-        opts.siz2 = 1.30;
+        opts.siz2 = 1.300;
     else
     if (~isnumeric(opts.siz2))
         error('refine2:incorrectInputClass', ...
