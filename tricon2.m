@@ -27,20 +27,22 @@ function [ee,tt] = tricon2(varargin)
         error('tricon2:incorrectInputClass' , ...
             'Incorrect input class.') ;
     end
+    if (~isnumeric(cc))
+        error('tricon2:incorrectInputClass' , ...
+            'Incorrect input class.') ;
+    end
+    
+%---------------------------------------------- basic checks
     if (ndims(tt) ~= +2 || size(tt,2) ~= +3)
         error('tricon2:incorrectDimensions' , ...
             'Incorrect input dimensions.');
     end
-    if (min(min(tt)) < +1 )
+    if (min(tt(:)) < +1 )
         error('tricon2:invalidInputs', ...
             'Invalid TRIA input array.') ;
     end
     
     if (~isempty(cc))
-    if (~isnumeric(cc))
-        error('tricon2:incorrectInputClass' , ...
-            'Incorrect input class.') ;
-    end
     if (ndims(cc) ~= +2 || size(cc,2) ~= +2)
         error('tricon2:incorrectDimensions' , ...
             'Incorrect input dimensions.');
@@ -50,7 +52,7 @@ function [ee,tt] = tricon2(varargin)
     nt = size(tt,1);
     nc = size(cc,1);
 
-%------------------------------------------ non-unique edges
+%------------------------------ assemble non-unique edge set
     ee = zeros(nt*3,2);
     ee((1:nt)+nt*0,:) = tt(:,[1,2]);
     ee((1:nt)+nt*1,:) = tt(:,[2,3]);
