@@ -18,12 +18,12 @@ function [vert,conn,tria,tnum] = refine2(varargin)
 %   EDGE(PART{KK}, :) is the set of edges in the KK-TH part.
 %
 %   VERT is a V-by-2 array of XY coordinates in the triangu-
-%   lation, CONN is an array of constrained edges, TRIA is a
+%   lation, EDGE is an array of constrained edges, TRIA is a
 %   T-by-3 array of triangles, and TNUM is a T-by-1 array of
-%   part indices. Each row of TRIA and CONN define an eleme-
+%   part indices. Each row of TRIA and EDGE define an eleme-
 %   nt. VERT(TRIA(II,1),:), VERT(TRIA(II,2),:) and VERT(TRIA
 %   (II,3),:) are the coordinates of the II-TH triangle. The
-%   edges in CONN are defined in a similar manner. NUM is an
+%   edges in EDGE are defined in a similar manner. NUM is an
 %   array of part indexing, such that TNUM(II) is the index 
 %   of the part in which the II-TH triangle resides.
 %
@@ -68,7 +68,7 @@ function [vert,conn,tria,tnum] = refine2(varargin)
 %   such cases, HFUN must adopt a signature [HH] = HFUN(PP,
 %   A1,A2,...,AN). HFUN must return positive values.
 %
-%   See also SMOOTH2
+%   See also SMOOTH2, DRAWTRI, DRAWSCR
 
 %   Darren Engwirda : 2017 --
 %   Email           : engwirda@mit.edu
