@@ -1,0 +1,112 @@
+function [vert,tria,hfun] = limhfn2(vert,tria,hfun,dhdx)
+%LIMHFN2 impose gradient limits on a discrete mesh-size fun-
+%ction defined over a 2-simplex triangulation.
+%   [VERT,TRIA,HFUN] = LIMHFN2(VERT,TRIA,HFUN,DHDX) returns
+%   a "gradient-limited" function HFUN, defined over a tria-
+%   ngulation {VERT,TRIA}. HFUN is a T-by-1 vector of funct-
+%   ion values, VERT is a V-by-2 array of XY coordinates and
+%   TRIA is a T-by-3 array of triangles. Each row of TRIA 
+%   defines a triangle, such that VERT(TRIA(II,1),:), VERT(
+%   TRIA(II,2),:) and VERT(TRIA(II,3),:) are the coordinates 
+%   of the II-TH triangle. DHDX is a scalar gradient-limit.
+%   HFUN is "limited" to control variation over the elements
+%   in the triangulation, such that (HFUN(V2)-HFUN(V1))/LL<= 
+%   DHDX, where {V1,V2} are the vertices of a given triangle
+%   edge and LL is the edge-length. Limits are enforced exh-
+%   austively over all edges.
+%
+%   See also TRIHFN2, LFSHFN2
+
+%   This function is based on: Persson, P.O. "Mesh size fun-
+%   ctions for implicit geometries and PDE-based gradient 
+%   limiting." Engineering with Computers 22 (2006): 95-109.
+
+%   Darren Engwirda : 2017 --
+%   Email           : engwirda@mit.edu
+%   Last updated    : 18/01/2017
+
+%---------------------------------------------- basic checks    
+    if ( ~isnumeric(vert) || ...
+         ~isnumeric(tria) || ...
+         ~isnumeric(hfun) || ...
+         ~isnumeric(dhdx) )
+        error('limhfn2:incorrectInputClass' , ...
+            'Incorrect input class.') ;
+    end
+    
+%---------------------------------------------- basic checks
+    if (ndims(vert) ~= +2 || ...
+        ndims(tria) ~= +2 || ...
+        ndims(hfun) ~= +2 || ...
+        numel(dhdx) ~= +1 )
+        error('limhfn2:incorrectDimensions' , ...
+            'Incorrect input dimensions.');
+    end
+    if (size(vert,2)~= +2 || ...
+        size(tria,2) < +3 || ...
+        size(hfun,2)~= +1 || ...
+        size(tria,1)~= size(hfun,1) )
+        error('limhfn2:incorrectDimensions' , ...
+            'Incorrect input dimensions.');
+    end
+
+    nvrt = size(vert,1) ;
+
+%---------------------------------------------- basic checks
+    if (min(min(tria(:,1:3))) < +1 || ...
+            max(max(tria(:,1:3))) > nvrt )
+        error('limhfn2:invalidInputs', ...
+            'Invalid TRIA input array.') ;
+    end
+
+%-------------------- impose gradient limits over mesh edges
+   [edge,tria] = tricon2(tria);
+    
+    evec = vert(edge(:,2),:) - ...
+           vert(edge(:,1),:) ;
+    elen = sqrt(sum(evec.^2,2)) ;
+    
+%----------------------------- exhaustive 'til all satisfied 
+    done = false; htol = +1.E-8 ;   
+    while (~done)
+        
+    %------------------------- reorder => better convergence
+        pvec = randperm(size(edge,1))' ;
+   
+        done = true ;
+   
+        for ppos = +1 : size(pvec,1)
+        
+            epos = pvec(ppos);
+        
+            ivrt = edge(epos,1);
+            jvrt = edge(epos,2);
+    
+            hdel = hfun(jvrt)-hfun(ivrt);
+            hdel = abs(hdel)./elen(epos);
+        
+            if (hdel > dhdx+htol)
+
+        %--------------------- calc. limits about min.-value           
+            done = false ;
+        
+            ilim = ...
+            hfun(jvrt) + dhdx*elen(epos);
+            jlim = ...
+            hfun(ivrt) + dhdx*elen(epos);
+
+            hfun(ivrt) = ... 
+                min(hfun(ivrt),ilim);
+            hfun(jvrt) = ...
+                min(hfun(jvrt),jlim);
+            
+            end
+        
+        end
+    
+    end
+
+end
+
+
+
