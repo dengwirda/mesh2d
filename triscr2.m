@@ -8,7 +8,7 @@ function [tscr] = triscr2(pp,tt)
 %   that VERT(TRIA(II,1),:), VERT(TRIA(II,2),:) and VERT(
 %   TRIA(II,3),:) are the coordinates of the II-TH triangle.
 %
-%   See also TRISCR2, TRIANG2, TRIBAL2
+%   See also TRIAREA, TRIANG2, TRIBAL2
 
 %   Darren Engwirda : 2017 --
 %   Email           : engwirda@mit.edu
