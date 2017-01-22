@@ -108,6 +108,7 @@ function [vert,conn,tria,tnum] = ...
         tmid,node,PSLG(part{ppos},:)) ;
  
         tnum(stat) = ppos ;
+        
     end    
 
 %------------------------------------ keep "interior" tria's  
