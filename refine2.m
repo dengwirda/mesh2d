@@ -555,6 +555,8 @@ function [vert,conn,tria,tnum] = refine2(varargin)
     
     tria = tria(:,1:3) ;
     
+    if (~isinf(opts.disp)), fprintf(1,'\n'); end
+    
 end
 
 function [opts] = makeopt(opts)
