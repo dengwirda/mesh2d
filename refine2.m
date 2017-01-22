@@ -53,7 +53,7 @@ function [vert,conn,tria,tnum] = refine2(varargin)
 %   based on the circumradius, HH is the tria-centred mesh-
 %   size value.
 %
-% - OPTS.DISP = {TRUE} -- refinement verbosity. Set to FALSE
+% - OPTS.DISP = { +10 } -- refinement verbosity. Set to INF
 %   for quiet execution.
 %
 %   [...] = REFINE2(..., HFUN,ARGS) also passes an optional
