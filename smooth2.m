@@ -28,7 +28,7 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
 % - OPTS.DISP = {+ 4} -- smoothing verbosity. Set to INF for 
 %   quiet execution.
 %
-%   See also REFINE2, DRAWSCR
+%   See also REFINE2, DRAWSCR, TRIDEMO
 
 %   [VERT,EDGE,TRIA,TNUM] = SMOOTH2(... ,HFUN,HARG)
 
