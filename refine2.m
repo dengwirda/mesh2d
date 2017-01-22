@@ -68,16 +68,32 @@ function [vert,conn,tria,tnum] = refine2(varargin)
 %   such cases, HFUN must adopt a signature [HH] = HFUN(PP,
 %   A1,A2,...,AN). HFUN must return positive values.
 %
-%   See also SMOOTH2, DRAWTRI, DRAWSCR
+%   See also SMOOTH2, DRAWSCR
+
+%   This routine implements a "multi-refinement" variant of
+%   Delaunay-refinement type mesh-generation. Both standard
+%   Delaunay-refinement and Frontal-Delaunay type algorithms
+%   are available. The Frontal-Delaunay approach is a simpl-
+%   ified version of the algorithm described in: D. Engwirda
+%   "Locally optimal Delaunay-refinement and optimisation-
+%   based mesh generation", Ph.D. Thesis, Univ. of Sydney, 
+%   2014. This work is an extension of the "off-centre" type
+%   methodology introduced in: H. Erten and A. Ungor, "Qual-
+%   ity triangulations with locally optimal Steiner points",
+%   SIAM Journal on Sci. Comp. 31(3) 2009, pp: 2103--2130.
+
+%   A more advanced, and fully three-dimensional implementa-
+%   tion is available as part of the JIGSAW pacakge. For de-
+%   tails, see github.com/dengwirda/jigsaw-matlab.
 
 %   Darren Engwirda : 2017 --
 %   Email           : engwirda@mit.edu
-%   Last updated    : 17/01/2017
+%   Last updated    : 21/01/2017
     
     addpath('aabb-tree');
 
 %---------------------------------------------- extract args
-    node = []; pslg = []; part = []; opts = [] ; 
+    node = []; PSLG = []; part = {}; opts = [] ; 
     hfun = []; harg = {};
 
     if (nargin>=+1), node = varargin{1}; end
@@ -85,7 +101,7 @@ function [vert,conn,tria,tnum] = refine2(varargin)
     if (nargin>=+3), part = varargin{3}; end
     if (nargin>=+4), opts = varargin{4}; end
     if (nargin>=+5), hfun = varargin{5}; end
-    if (nargin>=+6), harg = varargin{6:end}; end
+    if (nargin>=+6), harg = varargin(6:end); end
 
    [opts] = makeopt(opts);
 
@@ -132,6 +148,9 @@ function [vert,conn,tria,tnum] = refine2(varargin)
 
 %---------------------------------------------- output title
     if (~isinf(opts.disp))
+        fprintf(1,'\n') ;
+        fprintf(1,' Refine triangulation...\n') ;
+        fprintf(1,'\n') ;
         fprintf(1,[...
 ' -------------------------------------------------------\n', ...
 '      |ITER.|          |CDT1(X)|          |CDT2(X)|     \n', ...
@@ -157,13 +176,15 @@ function [vert,conn,tria,tnum] = refine2(varargin)
            ] ;
     vert = [vert; vbox] ;
 
-    while (iter < opts.iter)
+    while  (true)
     
         iter = iter + 1 ;
     
+        if (iter>=opts.iter),break; end
+    
     %------------------------------------- calc. circumballs
         bal1 = cdtbal1(vert,conn) ;
-    
+        
     %------------------------------------- eval. length-fun.
         if (~isempty(hfun))
             if (isnumeric(hfun))
@@ -206,7 +227,7 @@ function [vert,conn,tria,tnum] = refine2(varargin)
       
     %------------------------------------- nothing to refine
         if (isempty(num1)), break; end
-      
+        
     %------------------------------------- refine "bad" tria
         switch (lower(opts.kind))
         case 'delaunay'
@@ -278,7 +299,7 @@ function [vert,conn,tria,tnum] = refine2(varargin)
 %-------------------------------- PASS 2: refine 2-simplexes
     bias = +0.775 ;
 
-    while (iter < opts.iter)
+    while  (true)
     
         iter = iter + 1 ;
 
@@ -289,6 +310,8 @@ function [vert,conn,tria,tnum] = refine2(varargin)
                             part) ;
 
        [edge,tria]= tricon2(tria,conn) ;
+       
+        if (iter>=opts.iter),break; end
 
     %------------------------------------- calc. circumballs
         bal1 = cdtbal1(vert,conn) ;
@@ -348,8 +371,8 @@ function [vert,conn,tria,tnum] = refine2(varargin)
         end
       
     %------------------------------------- nothing to refine
-        if (isempty(num2)), break; end
- 
+        if (isempty(num2)), break; end 
+        
        [scr2,idx2] = sort( ...
             scr2(num2),'descend');
         num2 = num2(idx2);
@@ -542,7 +565,8 @@ function [opts] = makeopt(opts)
     else
     if (~strcmpi(opts.kind,'delfront') && ...
         ~strcmpi(opts.kind,'delaunay') )
-        error('refine2:invalidOption','Invalid refinement KIND.'); 
+        error( ...
+        'refine2:invalidOption','Invalid refinement KIND.'); 
     end
     end
     
@@ -560,7 +584,7 @@ function [opts] = makeopt(opts)
     end
     
     if (~isfield(opts,'disp'))
-        opts.disp = +25 ;
+        opts.disp = +10 ;
     else
     if (~isnumeric(opts.disp))
         error('refine2:incorrectInputClass', ...
