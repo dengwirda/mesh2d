@@ -1,11 +1,11 @@
-function [vert,tria,hfun] = limhfn2(vert,tria,hfun,dhdx)
+function [hfun] = limhfn2(vert,tria,hfun,dhdx)
 %LIMHFN2 impose gradient limits on a discrete mesh-size fun-
 %ction defined over a 2-simplex triangulation.
-%   [VERT,TRIA,HFUN] = LIMHFN2(VERT,TRIA,HFUN,DHDX) returns
-%   a "gradient-limited" function HFUN, defined over a tria-
-%   ngulation {VERT,TRIA}. HFUN is a T-by-1 vector of funct-
-%   ion values, VERT is a V-by-2 array of XY coordinates and
-%   TRIA is a T-by-3 array of triangles. Each row of TRIA 
+%   [HFUN] = LIMHFN2(VERT,TRIA,HFUN,DHDX) returns a "gradie-
+%   nt-limited" function HFUN, defined over a triangulation 
+%   {VERT,TRIA}. HFUN is a T-by-1 vector of function values, 
+%   VERT is a V-by-2 array of XY coordinates and TRIA is a 
+%   T-by-3 array of triangles. Each row of TRIA 
 %   defines a triangle, such that VERT(TRIA(II,1),:), VERT(
 %   TRIA(II,2),:) and VERT(TRIA(II,3),:) are the coordinates 
 %   of the II-TH triangle. DHDX is a scalar gradient-limit.
@@ -17,13 +17,14 @@ function [vert,tria,hfun] = limhfn2(vert,tria,hfun,dhdx)
 %
 %   See also TRIHFN2, LFSHFN2
 
-%   This function is based on: Persson, P.O. "Mesh size fun-
-%   ctions for implicit geometries and PDE-based gradient 
-%   limiting." Engineering with Computers 22 (2006): 95-109.
+%   This function is based on a very simplified version of: 
+%   Persson, P.O. "Mesh size functions for implicit geometr-
+%   ies and PDE-based gradient limiting." Engineering with 
+%   Computers 22 (2006): 95-109.
 
 %   Darren Engwirda : 2017 --
 %   Email           : engwirda@mit.edu
-%   Last updated    : 18/01/2017
+%   Last updated    : 21/01/2017
 
 %---------------------------------------------- basic checks    
     if ( ~isnumeric(vert) || ...
