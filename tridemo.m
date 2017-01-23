@@ -24,6 +24,9 @@ function tridemo(demo)
 % - DEMO-7 larger-scale problem, mesh refinement + optimisa-
 %   tion. 
 %
+% - DEMO-8 medium-scale problem, mesh refinement + optimisa-
+%   tion. 
+%
 %   See also REFINE2, SMOOTH2
 
 %   Darren Engwirda : 2017 --
@@ -40,9 +43,10 @@ function tridemo(demo)
         case 5, demo5();
         case 6, demo6();
         case 7, demo7();
+        case 8, demo8();
             
         otherwise
-        error('tridemo', 'Invalid selection!');
+        error('tridemo:invalidSelection', 'Invalid selection!');
     end
 
 end
@@ -522,6 +526,42 @@ function demo7
 %DEMO7 larger-scale problem, mesh refinement + optimisation.
 
    [node,edge] = triread('poly-data/islands.msh');
+ 
+%---------------------------------------------- do size-fun. 
+   [vlfs,tlfs, ...
+    hlfs] = lfshfn2(node,edge) ;
+    
+   [slfs] = idxtri2(vlfs,tlfs) ;
+   
+%---------------------------------------------- do mesh-gen.
+    hfun = @trihfn2;
+   
+   [vert,etri, ...
+    tria,tnum] = refine2(node,edge,[],[],hfun , ...
+                    vlfs,tlfs,slfs,hlfs);
+        
+%---------------------------------------------- do mesh-opt.
+   [vert,etri, ...
+    tria,tnum] = smooth2(vert,etri,tria,tnum) ;
+    
+    figure;
+    patch('faces',tria(:,1:3),'vertices',vert , ...
+        'facecolor','w', ...
+        'edgecolor','k') ;
+    hold on; axis image off;
+    title(['MESH-OPT.: KIND=DELFRONT, |TRIA|=', ...
+        num2str(size(tria,1))]) ;
+           
+    drawscr(vert,etri,tria,tnum);
+           
+    drawnow;
+    
+end
+
+function demo8
+%DEMO8 medium-scale problem, mesh refinement + optimisation.
+
+   [node,edge] = triread('poly-data/river.msh');
  
 %---------------------------------------------- do size-fun. 
    [vlfs,tlfs, ...
