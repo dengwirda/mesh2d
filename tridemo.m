@@ -31,7 +31,7 @@ function tridemo(demo)
 
 %   Darren Engwirda : 2017 --
 %   Email           : engwirda@mit.edu
-%   Last updated    : 22/01/2017
+%   Last updated    : 23/01/2017
 
     close all;
 
@@ -55,7 +55,13 @@ function demo1
 %DEMO1 explore impact of RHO2 threshold on mesh density/qua-
 %lity.
 
-   [node,edge] = triread('poly-data/lake.msh');
+    filename = mfilename('fullpath');
+    filepath = fileparts( filename );
+
+    meshfile = ...
+        [filepath,'/poly-data/lake.msh'];
+
+   [node,edge] = triread( meshfile );
  
     fprintf(1, [ ...
 ' The REFINE2 routine can be used to build guaranteed-quality \n', ...
@@ -119,7 +125,13 @@ function demo2
 %DEMO2 explore impact of refinement "KIND" on mesh quality/-
 %density.
 
-   [node,edge] = triread('poly-data/lake.msh');
+    filename = mfilename('fullpath');
+    filepath = fileparts( filename );
+
+    meshfile = ...
+        [filepath,'/poly-data/lake.msh'];
+
+   [node,edge] = triread( meshfile );
  
     fprintf(1, [ ...
 ' The REFINE2 routine supports two Delaunay-based refinement  \n', ...
@@ -173,7 +185,13 @@ end
 function demo3
 %DEMO3 explore impact of user-defined mesh-size constraints.
 
-   [node,edge] = triread('poly-data/airfoil.msh');
+    filename = mfilename('fullpath');
+    filepath = fileparts( filename );
+
+    meshfile = ...
+        [filepath,'/poly-data/airfoil.msh'];
+
+   [node,edge] = triread( meshfile );
  
     fprintf(1, [ ...
 ' Additionally, the REFINE2 routine supports size-driven ref- \n', ...
@@ -231,7 +249,13 @@ end
 function demo4
 %DEMO4 explore impact of "hill-climbing" mesh optimisations.
 
-   [node,edge] = triread('poly-data/airfoil.msh');
+    filename = mfilename('fullpath');
+    filepath = fileparts( filename );
+
+    meshfile = ...
+        [filepath,'/poly-data/airfoil.msh'];
+
+   [node,edge] = triread( meshfile );
  
     fprintf(1, [ ...
 ' The SMOOTH2 routine provides iterative mesh "smoothing" ca- \n', ...
@@ -525,7 +549,13 @@ end
 function demo7
 %DEMO7 larger-scale problem, mesh refinement + optimisation.
 
-   [node,edge] = triread('poly-data/islands.msh');
+    filename = mfilename('fullpath');
+    filepath = fileparts( filename );
+
+    meshfile = ...
+        [filepath,'/poly-data/islands.msh'];
+
+   [node,edge] = triread( meshfile );
  
 %---------------------------------------------- do size-fun. 
    [vlfs,tlfs, ...
@@ -561,7 +591,13 @@ end
 function demo8
 %DEMO8 medium-scale problem, mesh refinement + optimisation.
 
-   [node,edge] = triread('poly-data/river.msh');
+    filename = mfilename('fullpath');
+    filepath = fileparts( filename );
+
+    meshfile = ...
+        [filepath,'/poly-data/river.msh'];
+
+   [node,edge] = triread( meshfile );
  
 %---------------------------------------------- do size-fun. 
    [vlfs,tlfs, ...
