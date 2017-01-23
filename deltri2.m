@@ -27,7 +27,7 @@ function [vert,conn,tria,tnum] = ...
 
 %   Darren Engwirda : 2017 --
 %   Email           : engwirda@mit.edu
-%   Last updated    : 14/01/2017
+%   Last updated    : 22/01/2017
 
 %---------------------------------------------- basic checks    
     if (~isnumeric(vert) || ~isnumeric(conn) || ...
@@ -68,7 +68,11 @@ function [vert,conn,tria,tnum] = ...
         error('deltri2:invalidInputs', ...
             'Invalid EDGE input array.') ;
     end
-    if (min([part{:}])<+1 || max([part{:}])>nedg)
+    
+    pmin = cellfun(@min,part);
+    pmax = cellfun(@max,part);
+    
+    if (min([pmin(:)])<+1 || max([pmax(:)])>nedg)
         error('deltri2:invalidInputs', ...
             'Invalid PART input array.') ;
     end
