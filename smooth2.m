@@ -126,7 +126,7 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
         tsel = tnum == ppos ;
         tcur = tria(tsel,:) ;
         
-       [ecur,tcur] = tricon2(tria) ;
+       [ecur,tcur] = tricon2(tcur) ;
        
         same = ismember( ...
           PSLG,ecur(:,1:2),'rows') ;
@@ -340,7 +340,7 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
     end
 
     tria = tria(:,1:3) ;
-
+    
     if (~isinf(opts.disp)), fprintf(1,'\n'); end
 
 end
