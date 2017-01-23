@@ -1,7 +1,7 @@
 # `MESH2D: A MATLAB-based mesh generator`
 
 <p align="center">
-  <img src = "../master/poly-data/lake-1-small.png"> &nbsp
+  <img src = "../master/poly-data/lake-1-small.png"> &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp
   <img src = "../master/poly-data/lake-2-small.png">
 </p>
 
