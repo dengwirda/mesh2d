@@ -7,7 +7,7 @@
   <img src = "../master/poly-data/lake-2-small.png">
 </p>
 
-All algorithms implemented in `MESH2D` are "provably-good" -- ensuring convergence, geometrical and topological correctness, and providing guarantees on worst-case element quality in all cases.
+All algorithms implemented in `MESH2D` are "provably-good" - ensuring convergence, geometrical and topological correctness, and providing guarantees on worst-case element quality in all cases.
 
 # `Starting Out`
 
