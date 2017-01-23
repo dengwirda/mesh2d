@@ -1,4 +1,4 @@
-# `MESH2D: A `MATLAB`-based mesh generator`
+# `MESH2D: A MATLAB-based mesh generator`
 
 `MESH2D` is a simple `MATLAB`-based Delaunay mesh generator for two-dimensional geometries. It is designed to generate high-quality constrained Delaunay triangulations for general polygonal regions in the plane. `MESH2D` provides simple and yet effective implementations of "Delaunay-refinement" and "Frontal-Delaunay" triangulation techniques, in additional to "hill-climbing" type mesh-optimisation. 
 
