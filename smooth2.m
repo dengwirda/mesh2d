@@ -291,7 +291,7 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
             tlow(ilow(ilow > 0)) = true ;
       
         %-- TRUE if tria needs "unwinding" 
-            stol = +.67 ;   
+            stol = +.75 ;   
             btri = nscr <= stol ...
                  & nscr <  oscr ...
                  & tlow ;
