@@ -165,8 +165,8 @@ function [vert,conn,tria,tnum] = refine2(varargin)
              ] ) ;
     end
 
-%-------------------------------- PASS 1: refine 1-simplexes
-    vert = node ; tria = []; 
+%-------------------------------- PASS 0: inflate box bounds
+    vert = node ; tria = []; tnum = []; 
     conn = PSLG ; iter = +0;
 
     vmin = min(vert,[],+1) ;    % inflate bbox for stability
@@ -182,6 +182,44 @@ function [vert,conn,tria,tnum] = refine2(varargin)
             vmin(1), vmax(2)
            ] ;
     vert = [vert; vbox] ;
+
+%-------------------------------- PASS 1: refine 1-simplexes
+   [vert,conn,tria,tnum,iter] = ...
+        cdtref1(vert,conn,tria,tnum, ...
+            node,PSLG,part,opts,hfun,harg,iter);
+
+%-------------------------------- PASS 2: refine 2-simplexes
+   [vert,conn,tria,tnum,iter] = ...
+        cdtref2(vert,conn,tria,tnum, ...
+            node,PSLG,part,opts,hfun,harg,iter);
+    
+%-------------------------------- trim extra adjacency info.  
+    tria = tria(:,1:3) ;
+    
+    if (~isinf(opts.disp)), fprintf(1,'\n'); end
+    
+end
+
+function [vert,conn,tria,tnum,iter] = ...
+            cdtref1(vert,conn,tria,tnum, ...
+                node,PSLG,part,opts,hfun,harg,iter)
+%CDTREF1 constrained Delaunay-refinement for 1-simplex elem-
+%nts embedded in R^2.
+%   [...] = CDTREF1(...) refines the set of 1-simplex eleme-
+%   nts embedded in the triangulation until all constraints 
+%   are satisfied. Specifically, edges are refined until all
+%   local mesh-spacing and encroachment conditions are met.
+%   Refinement proceeds according to either a Delaunay-refi-
+%   nement or Frontal-Delaunay type approach, depending on
+%   user-settings. In either case, new steiner vertices are
+%   introduced to split "bad" edges - those that violate the
+%   set of prescribed constraints. In the "-DR" type process
+%   edges are split about their circumballs (midpoints). In
+%   the "-FD" approach, new vertices are positioned such th-
+%   at mesh-spacing constraints are satisfied in a "locally-
+%   optimal" fashion.
+
+    ntol = +1.60;
 
     while  (true)
     
@@ -214,9 +252,52 @@ function [vert,conn,tria,tnum] = refine2(varargin)
         siz1 = ...
          +4. * bal1(:,3)./(fun1.*fun1) ;
   
-    %------------------------------------- refinement queues
-        ref1 = false(size(conn,1),1);
+    %------------------------------------- test encroachment
+        bal1(:,3) = ...
+            (1.-eps^.75) * bal1(:,3) ;
+  
+       [vp,vi] = ...
+          findball(bal1,vert(:,1:2)) ;
+
+    %------------------------------------- near=>[vert,edge]
+        ebad = false(size(conn,1),1) ;
+        near = [];
+        for ii = +1 : size(vp,1)
+            for ip = vp(ii,1):vp(ii,2)
+                jj = vi(ip) ;
+                if (ii ~= conn(jj,1) ...
+                &&  ii ~= conn(jj,2) )
+                near = [near; ii,jj] ;
+                end
+            end
+        end
         
+        if (~isempty(near))
+    %-- mark edge "encroached" if there is a vert within its
+    %-- dia.-ball that is not joined to either of its vert's
+    %-- via an existing edge...         
+            ivrt = conn(near(:,2),1);
+            jvrt = conn(near(:,2),2);
+ 
+            conn = sort(conn,2);
+        
+            pair = [near(:,1), ivrt];   
+            ivec = ismember( ...
+            sort(pair,2),conn,'rows') ;
+            
+            pair = [near(:,1), jvrt];
+            jvec = ismember( ...
+            sort(pair,2),conn,'rows') ;
+           
+            okay = ~ivec & ~jvec ;
+            
+            ebad(near(okay,2))=true ;
+      
+        end
+        
+    %------------------------------------- refinement queues
+        ref1 = false(size(conn,1),1);      
+        ref1(ebad)           = true ;   %- edge encroachment
         ref1(siz1>opts.siz1* ...        %- bad equiv. length
                   opts.siz1) = true ;
         
@@ -239,10 +320,25 @@ function [vert,conn,tria,tnum] = refine2(varargin)
         switch (lower(opts.kind))
         case 'delaunay'
     %------------------------------------- do circ-ball pt's
-        new1 = bal1(ref1,:);
+        new1 = bal1(ref1, 1:2) ;
+        
+        vnew = (1:size(new1,1))' ...
+                + size(vert,1) ;
+        
+        cnew = [conn( ref1,1), vnew
+                conn( ref1,2), vnew];
+        conn = [conn(~ref1,:); cnew];
+            
+    %------------------------------------- update vertex set    
+        vert = [vert; new1(:,1:2)];
+  
         
         case 'delfront'
-    %------------------------------------- do offcentre pt's        
+    %-- symmetric off-centre scheme:- refine edges from both
+    %-- ends simultaneously, placing new vertices to satisfy
+    %-- the worst of mesh-spacing and local voronoi constra-
+    %-- ints.
+  
         evec = vert(conn(ref1,2),:) ...
              - vert(conn(ref1,1),:) ;
         elen = sqrt(sum(evec.^2,2)) ;
@@ -252,59 +348,121 @@ function [vert,conn,tria,tnum] = refine2(varargin)
         olen = sqrt(bal1(ref1,3));
         
     %------------------------------------- "size"-type dist.
-        hvrt = fun0(conn(ref1,1));
+        ihfn = fun0(conn(ref1,1));
+        jhfn = fun0(conn(ref1,2));
         
     %------------------------------------- bind "safe" dist.
-        dist = min(olen,hvrt) ;
+        ilen = min(olen,ihfn) ;
+        jlen = min(olen,jhfn) ;
  
     %------------------------------------- locate offcentres       
-        new1 = vert(conn(ref1,1),:) ...
-             + [dist,dist] .* evec;
+        inew = vert(conn(ref1,1),:) ...
+             + [ilen,ilen].*evec ;
+        jnew = vert(conn(ref1,2),:) ...
+             - [jlen,jlen].*evec ;
              
     %------------------------------------- iter. "size"-type
         for ioff = +1 : +4
     %------------------------------------- eval. length-fun.
         if (~isempty(hfun))
             if (isnumeric(hfun))
-            hprj = hfun * ...
-              ones(size(new1,1),1);
+            iprj = hfun * ...
+              ones(size(inew,1),1);
+            jprj = hfun * ...
+              ones(size(jnew,1),1);
             else
-            hprj = feval( ...
-                hfun,new1,harg{:});
+            iprj = feval( ...
+                hfun,inew,harg{:});
+            jprj = feval( ...
+                hfun,jnew,harg{:});
             end
         else
-            hprj = +inf * ...
-              ones(size(new1,1),1);
+            iprj = +inf * ...
+              ones(size(inew,1),1);
+            jprj = +inf * ...
+              ones(size(jnew,1),1);
         end
         
-        hprj = 0.5*hvrt + 0.5*hprj;
+        iprj = 0.5*ihfn + 0.5*iprj;
+        jprj = 0.5*jhfn + 0.5*jprj;
 
-    %------------------------------------- bind "safe" dist.        
-        dist = min(olen,hvrt) ;
-  
-    %------------------------------------- locate offcentres      
-        new1 = vert(conn(ref1,1),:) ...
-             + [dist,dist] .* evec;
+    %------------------------------------- bind "safe" dist.
+        ilen = min(olen,ihfn) ;
+        jlen = min(olen,jhfn) ;
+ 
+    %------------------------------------- locate offcentres       
+        inew = vert(conn(ref1,1),:) ...
+             + [ilen,ilen].*evec ;
+        jnew = vert(conn(ref1,2),:) ...
+             - [jlen,jlen].*evec ;
         
         end
-             
-        end % switch(lower(opts.kind))
-     
-    %------------------------------------- split constraints
-        vnew = (1:length( ...
-          find(ref1)))'+size(vert,1);
         
-        cnew = [conn( ref1,1), vnew
-                conn( ref1,2), vnew];
+    %------------------------------------- merge i,j if near        
+        near = ...
+            ilen+jlen>=olen*ntol ;
+        
+        znew = inew(near,:) * .5 ...
+             + jnew(near,:) * .5 ;
+        
+        inew = inew(~near,1:2) ;
+        jnew = jnew(~near,1:2) ;
+ 
+    %------------------------------------- split constraints
+        zset = (1:size(znew,1))' ...
+                + size(vert,1) ;
+                
+        iset = (1:size(inew,1))' ...
+                + size(znew,1) + ...
+                + size(vert,1) ;
+                
+        jset = (1:size(jnew,1))' ...
+                + size(znew,1) + ...
+                + size(inew,1) + ...
+                + size(vert,1) ;
+        
+        set1 = num1( near);
+        set2 = num1(~near);
+        
+        cnew = [conn( set1,1), zset
+                conn( set1,2), zset
+                conn( set2,1), iset
+                conn( set2,2), jset
+                iset, jset ] ;
         conn = [conn(~ref1,:); cnew];
             
     %------------------------------------- update vertex set    
-        vert = [vert; new1(:,1:2)];
+        vert = [vert; znew(:,1:2)];
+        vert = [vert; inew(:,1:2)];
+        vert = [vert; jnew(:,1:2)];
+           
+           
+        end % switch(lower(opts.kind))
     
     end
 
-%-------------------------------- PASS 2: refine 2-simplexes
-    bias = +0.775 ;
+end
+
+function [vert,conn,tria,tnum,iter] = ...
+            cdtref2(vert,conn,tria,tnum, ...
+                node,PSLG,part,opts,hfun,harg,iter)
+%CDTREF2 constrained Delaunay-refinement for 2-simplex elem-
+%nts embedded in R^2.
+%   [...] = CDTREF2(...) refines the set of 2-simplex eleme-
+%   nts embedded in the triangulation until all constraints 
+%   are satisfied. Specifically, triangles are refined until
+%   all local mesh-spacing and element-shape conditions are
+%   met. Refinement proceeds according to either a Delaunay-
+%   refinement or Frontal-Delaunay type approach, depending 
+%   on user-settings. In either case, new steiner points are
+%   introduced to split "bad" triangles - those that violate 
+%   the set of prescribed constraints. In the "-DR" type pr-
+%   ocess triangles are split about their circumballs. In
+%   the "-FD" approach, new vertices are positioned such th-
+%   at mesh-spacing and element-shape constraints are satis-
+%   fied in a "locally-optimal" fashion.
+
+    bias = +.775;
 
     while  (true)
     
@@ -391,10 +549,16 @@ function [vert,conn,tria,tnum] = refine2(varargin)
         new2 = zeros(length(num2),3);
         new2(:,1:2) = bal2(num2,1:2);
         new2(:,  3) = ...
-            bal2(num2,3)*bias^2 ;
+            bal2(num2,3) * bias^2;
+        
         
         case 'delfront'
-    %------------------------------------- do offcentre pt's          
+    %-- off-centre scheme -- refine triangles by positioning
+    %-- new vertices along a local segment of the voronoi
+    %-- diagram, bounded by assoc. circmballs. New points
+    %-- are placed to satisfy the worst of local mesh-length 
+    %-- and element-shape constraints.
+             
         ftri = false(length(num2),1);
         tadj = zeros(length(num2),1);
 
@@ -559,11 +723,7 @@ function [vert,conn,tria,tnum] = refine2(varargin)
         vert = [vert; new2(:,1:2)];
         
     end
-    
-    tria = tria(:,1:3) ;
-    
-    if (~isinf(opts.disp)), fprintf(1,'\n'); end
-    
+
 end
 
 function [opts] = makeopt(opts)
