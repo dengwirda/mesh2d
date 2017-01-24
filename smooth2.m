@@ -44,7 +44,7 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
 
 %   Darren Engwirda : 2017 --
 %   Email           : engwirda@mit.edu
-%   Last updated    : 23/01/2017
+%   Last updated    : 24/01/2017
     
     filename = mfilename('fullpath');
     filepath = fileparts( filename );
@@ -125,6 +125,8 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
     pmax = max(tnum(:));
     PSLG = sort(PSLG,2);
     for ppos = +1 : pmax
+    
+    %!! what about "interior" constraints?? 
     
         tsel = tnum == ppos ;
         tcur = tria(tsel,:) ;
@@ -362,6 +364,10 @@ function [opts] = makeopt(opts)
         error('smooth2:incorrectDimensions', ...
             'Incorrect input dimensions.') ;    
     end
+    if (opts.iter <= +0)
+        error('smooth2:invalidOptionValues', ...
+            'Invalid OPT.ITER selection.') ;
+    end
     end
     
     if (~isfield(opts,'disp'))
@@ -375,6 +381,10 @@ function [opts] = makeopt(opts)
         error('smooth2:incorrectDimensions', ...
             'Incorrect input dimensions.') ;    
     end
+    if (opts.disp <= +0)
+        error('smooth2:invalidOptionValues', ...
+            'Invalid OPT.DISP selection.') ;
+    end
     end
     
     if (~isfield(opts,'vtol'))
@@ -387,6 +397,10 @@ function [opts] = makeopt(opts)
     if (numel(opts.vtol)~= +1)
         error('smooth2:incorrectDimensions', ...
             'Incorrect input dimensions.') ;    
+    end
+    if (opts.vtol <= 0.)
+        error('smooth2:invalidOptionValues', ...
+            'Invalid OPT.VTOL selection.') ;
     end
     end
     

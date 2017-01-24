@@ -88,7 +88,7 @@ function [vert,conn,tria,tnum] = refine2(varargin)
 
 %   Darren Engwirda : 2017 --
 %   Email           : engwirda@mit.edu
-%   Last updated    : 23/01/2017
+%   Last updated    : 24/01/2017
     
     filename = mfilename('fullpath') ;
     filepath = fileparts( filename ) ;
@@ -219,6 +219,14 @@ function [vert,conn,tria,tnum,iter] = ...
 %   at mesh-spacing constraints are satisfied in a "locally-
 %   optimal" fashion.
 
+    tcpu.full = +0. ;
+    tcpu.ball = +0. ;
+    tcpu.hfun = +0. ;
+    tcpu.encr = +0. ;
+    tcpu.offc = +0. ;
+    
+    tnow =  tic ;
+
     ntol = +1.60;
 
     while  (true)
@@ -228,9 +236,16 @@ function [vert,conn,tria,tnum,iter] = ...
         if (iter>=opts.iter),break; end
     
     %------------------------------------- calc. circumballs
+        ttic = tic ;
+    
         bal1 = cdtbal1(vert,conn) ;
+    
+        tcpu.ball = ...
+            tcpu.ball + toc(ttic) ;
         
     %------------------------------------- eval. length-fun.
+        ttic = tic ;
+        
         if (~isempty(hfun))
             if (isnumeric(hfun))
             fun0 = hfun * ...
@@ -252,7 +267,12 @@ function [vert,conn,tria,tnum,iter] = ...
         siz1 = ...
          +4. * bal1(:,3)./(fun1.*fun1) ;
   
+        tcpu.hfun = ...
+            tcpu.hfun + toc(ttic) ;
+  
     %------------------------------------- test encroachment
+        ttic = tic ;
+        
         bal1(:,3) = ...
             (1.-eps^.75) * bal1(:,3) ;
   
@@ -294,6 +314,9 @@ function [vert,conn,tria,tnum,iter] = ...
             ebad(near(okay,2))=true ;
       
         end
+        
+        tcpu.encr = ...
+            tcpu.encr + toc(ttic) ;
         
     %------------------------------------- refinement queues
         ref1 = false(size(conn,1),1);      
@@ -338,6 +361,8 @@ function [vert,conn,tria,tnum,iter] = ...
     %-- ends simultaneously, placing new vertices to satisfy
     %-- the worst of mesh-spacing and local voronoi constra-
     %-- ints.
+  
+        ttic = tic ;
   
         evec = vert(conn(ref1,2),:) ...
              - vert(conn(ref1,1),:) ;
@@ -435,10 +460,34 @@ function [vert,conn,tria,tnum,iter] = ...
         vert = [vert; znew(:,1:2)];
         vert = [vert; inew(:,1:2)];
         vert = [vert; jnew(:,1:2)];
-           
+
+        tcpu.offc = ...
+            tcpu.offc + toc(ttic) ;
+                       
            
         end % switch(lower(opts.kind))
     
+    end
+
+    tcpu.full = ...
+        tcpu.full + toc(tnow);
+
+    if (opts.dbug)
+    %------------------------------------- print debug timer 
+        fprintf(1,'\n') ;
+        fprintf(1,' 1-simplex REF. timer...\n');
+        fprintf(1,'\n') ;
+        fprintf(1, ...
+        ' FULL: %f \n', tcpu.full);
+        fprintf(1, ...
+        ' BALL: %f \n', tcpu.ball);
+        fprintf(1, ...
+        ' HFUN: %f \n', tcpu.hfun);
+        fprintf(1, ...
+        ' ENCR: %f \n', tcpu.encr);
+        fprintf(1, ...
+        ' OFFC: %f \n', tcpu.offc);
+        fprintf(1,'\n') ;
     end
 
 end
@@ -462,6 +511,16 @@ function [vert,conn,tria,tnum,iter] = ...
 %   at mesh-spacing and element-shape constraints are satis-
 %   fied in a "locally-optimal" fashion.
 
+    tcpu.full = +0. ;
+    tcpu.dtri = +0. ;
+    tcpu.tcon = +0. ;
+    tcpu.ball = +0. ;
+    tcpu.hfun = +0. ;
+    tcpu.offc = +0. ;
+    tcpu.filt = +0. ;
+
+    tnow =  tic ;
+
     bias = +.775;
 
     while  (true)
@@ -469,16 +528,29 @@ function [vert,conn,tria,tnum,iter] = ...
         iter = iter + 1 ;
 
     %------------------------------------- build current CDT
+        ttic = tic ;
+        
        [vert,conn, ...
         tria,tnum]= deltri2(vert,conn, ...
                             node,PSLG, ...
                             part) ;
+                            
+        tcpu.dtri = ...
+            tcpu.dtri + toc(ttic) ;
+
+    %------------------------------------- build current adj
+        ttic = tic ;
 
        [edge,tria]= tricon2(tria,conn) ;
+       
+        tcpu.tcon = ...
+            tcpu.tcon + toc(ttic) ;
        
         if (iter>=opts.iter),break; end
 
     %------------------------------------- calc. circumballs
+        ttic = tic ;
+        
         bal1 = cdtbal1(vert,conn) ;
         bal2 = cdtbal2(vert,edge,tria) ;
         len2 = minlen2(vert,tria) ;
@@ -487,8 +559,13 @@ function [vert,conn,tria,tnum,iter] = ...
 
     %------------------------------------- refinement scores
         scr2 = rho2 .* bal2(:,+3) ;
+
+        tcpu.ball = ...
+            tcpu.ball + toc(ttic) ;
   
     %------------------------------------- eval. length-fun.     
+        ttic = tic ;
+        
         if (~isempty(hfun))
             if (isnumeric(hfun))
             fun0 = hfun * ...
@@ -510,6 +587,9 @@ function [vert,conn,tria,tnum,iter] = ...
         
         siz2 = ...
          +3. * bal2(:,3)./(fun2.*fun2) ;
+
+        tcpu.hfun = ...
+            tcpu.hfun + toc(ttic) ;
 
     %------------------------------------- refinement queues
         ref1 = false(size(conn,1),1);
@@ -558,6 +638,8 @@ function [vert,conn,tria,tnum,iter] = ...
     %-- diagram, bounded by assoc. circmballs. New points
     %-- are placed to satisfy the worst of local mesh-length 
     %-- and element-shape constraints.
+             
+        ttic = tic ;
              
         ftri = false(length(num2),1);
         tadj = zeros(length(num2),1);
@@ -673,9 +755,15 @@ function [vert,conn,tria,tnum,iter] = ...
         [off2(:,1:2),(bias*orad).^2] ;
         end
         
+        tcpu.offc = ...
+            tcpu.offc + toc(ttic) ;
+        
+        
         end % switch(lower(opts.kind))
 
     %------------------------------------- inter.-ball dist.
+        ttic = tic ;
+       
        [vp,vi] = ...
           findball(new2,new2(:,1:2));
 
@@ -709,6 +797,9 @@ function [vert,conn,tria,tnum,iter] = ...
         
         new2 = new2(keep,:);
         new1 = bal1(ref1,:);
+       
+        tcpu.filt = ...
+            tcpu.filt + toc(ttic) ;
         
     %------------------------------------- split constraints
         vnew = (1:length( ...
@@ -722,6 +813,31 @@ function [vert,conn,tria,tnum,iter] = ...
         vert = [vert; new1(:,1:2)];
         vert = [vert; new2(:,1:2)];
         
+    end
+
+    tcpu.full = ...
+        tcpu.full + toc(tnow);
+
+    if (opts.dbug)
+    %------------------------------------- print debug timer 
+        fprintf(1,'\n') ;
+        fprintf(1,' 2-simplex REF. timer...\n');
+        fprintf(1,'\n') ;
+        fprintf(1, ...
+        ' FULL: %f \n', tcpu.full);
+        fprintf(1, ...
+        ' DTRI: %f \n', tcpu.dtri);
+        fprintf(1, ...
+        ' TCON: %f \n', tcpu.tcon);
+        fprintf(1, ...
+        ' BALL: %f \n', tcpu.ball);
+        fprintf(1, ...
+        ' HFUN: %f \n', tcpu.hfun);
+        fprintf(1, ...
+        ' OFFC: %f \n', tcpu.offc);
+        fprintf(1, ...
+        ' FILT: %f \n', tcpu.filt);   
+        fprintf(1,'\n') ;
     end
 
 end
@@ -750,6 +866,10 @@ function [opts] = makeopt(opts)
         error('refine2:incorrectDimensions', ...
             'Incorrect input dimensions.') ;    
     end
+    if (opts.iter <= +0)
+        error('refine2:invalidOptionValues', ...
+            'Invalid OPT.ITER selection.') ;
+    end
     end
     
     if (~isfield(opts,'disp'))
@@ -762,6 +882,10 @@ function [opts] = makeopt(opts)
     if (numel(opts.disp)~= +1)
         error('refine2:incorrectDimensions', ...
             'Incorrect input dimensions.') ;    
+    end
+    if (opts.disp <= +0)
+        error('refine2:invalidOptionValues', ...
+            'Invalid OPT.DISP selection.') ;
     end
     end
     
@@ -776,6 +900,10 @@ function [opts] = makeopt(opts)
         error('refine2:incorrectDimensions', ...
             'Incorrect input dimensions.') ;    
     end
+    if (opts.rho2 < +1.)
+        error('refine2:invalidOptionValues', ...
+            'Invalid OPT.RHO2 selection.') ;
+    end
     end
     
     if (~isfield(opts,'off2'))
@@ -788,6 +916,10 @@ function [opts] = makeopt(opts)
     if (numel(opts.off2)~= +1)
         error('refine2:incorrectDimensions', ...
             'Incorrect input dimensions.') ;    
+    end
+    if (opts.off2 < +.7)
+        error('refine2:invalidOptionValues', ...
+            'Invalid OPT.OFF2 selection.') ;
     end
     end
     
@@ -802,6 +934,10 @@ function [opts] = makeopt(opts)
         error('refine2:incorrectDimensions', ...
             'Incorrect input dimensions.') ;    
     end
+    if (opts.siz1 <= 0.)
+        error('refine2:invalidOptionValues', ...
+            'Invalid OPT.SIZ1 selection.') ;
+    end
     end
     
     if (~isfield(opts,'siz2'))
@@ -812,6 +948,23 @@ function [opts] = makeopt(opts)
             'Incorrect input class.');
     end
     if (numel(opts.siz2)~= +1)
+        error('refine2:incorrectDimensions', ...
+            'Incorrect input dimensions.') ;    
+    end
+    if (opts.siz2 <= 0.)
+        error('refine2:invalidOptionValues', ...
+            'Invalid OPT.SIZ2 selection.') ;
+    end
+    end
+
+    if (~isfield(opts,'dbug'))
+        opts.dbug = false;
+    else
+    if (~islogical(opts.dbug))
+        error('refine2:incorrectInputClass', ...
+            'Incorrect input class.');
+    end
+    if (numel(opts.dbug)~= +1)
         error('refine2:incorrectDimensions', ...
             'Incorrect input dimensions.') ;    
     end

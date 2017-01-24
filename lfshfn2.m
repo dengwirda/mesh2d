@@ -27,7 +27,7 @@ function [vert,tria,hlfs] = lfshfn2(varargin)
 
 %   Darren Engwirda : 2017 --
 %   Email           : engwirda@mit.edu
-%   Last updated    : 21/01/2017
+%   Last updated    : 24/01/2017
 
 %---------------------------------------------- extract args
     node = []; PSLG = []; part = {}; opts = [] ; 
@@ -97,6 +97,10 @@ function [opts] = makeopt(opts)
         error('lfshfn2:incorrectDimensions', ...
             'Incorrect input dimensions.') ;    
     end
+    if (opts.rho2 < +1.)
+        error('lfshfn2:invalidOptionValues', ...
+            'Invalid OPT.RHO2 selection.') ;
+    end
     end
     
     if (~isfield(opts,'dhdx'))
@@ -109,6 +113,10 @@ function [opts] = makeopt(opts)
     if (numel(opts.dhdx)~= +1)
         error('lfshfn2:incorrectDimensions', ...
             'Incorrect input dimensions.') ;    
+    end
+    if (opts.dhdx <= 0.)
+        error('lfshfn2:invalidOptionValues', ...
+            'Invalid OPT.DHDX selection.') ;
     end
     end
 
