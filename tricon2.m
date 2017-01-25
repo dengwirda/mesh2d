@@ -14,7 +14,7 @@ function [ee,tt] = tricon2(varargin)
 
 %   Darren Engwirda : 2014 --
 %   Email           : engwirda@mit.edu
-%   Last updated    : 14/01/2014
+%   Last updated    : 24/01/2017
 
 %---------------------------------------------- extract args
     tt = []; cc = [];
@@ -59,8 +59,16 @@ function [ee,tt] = tricon2(varargin)
     ee((1:nt)+nt*2,:) = tt(:,[3,1]);
     
 %------------------------------ unique edges and re-indexing
-   [ee, iv, jv] = ...
-        unique(sort(ee, 2), 'rows');
+  %[ee, iv, jv] = ...
+  %     unique(sort(ee, 2), 'rows');
+   
+%-- a (much) faster alternative the 'rows' based unique call
+%-- above can be achieved by casting the edge list (i.e. pa-
+%-- irs of uint32 values) to double, and performing the sor-
+%-- ted operations on vector inputs! 
+    ee = sort(ee,2);
+   [ed,iv,jv] = unique(ee*[2^31;1]);  
+    ee = ee (iv, :);
     
 %------------------- tria-to-edge indexing: 3 edges per tria 
     tt = [tt, zeros(nt*1,3)] ;
@@ -88,10 +96,18 @@ function [ee,tt] = tricon2(varargin)
     if (isempty(cc)), return; end
     
 %------------------------------------ find constrained edges
-    is = ismember( ...
-       ee(:,1:2),sort(cc,2),'rows');
+   %is = ismember( ...
+   %   ee(:,1:2),sort(cc,2),'rows');
+   
+%-- as above, the 'rows' based call to ismember can be sped
+%-- up by casting the edge lists (i.e. pairs of uint32 valu-
+%-- es) to double, and performing the sorted queries on vec-
+%-- tor inputs!
+    cc = sort(cc,2);
+    is = ismember(ed, cc*[2^31;+1]);
+   
 %------------------------------------ mark constrained edges
-    ee(is,5) = +1 ;
+    ee(is, 5) = +1 ;
     
 end
 
