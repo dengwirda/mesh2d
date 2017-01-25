@@ -81,10 +81,18 @@ function [vert,conn,tria,tnum] = refine2(varargin)
 %   methodology introduced in: H. Erten and A. Ungor, "Qual-
 %   ity triangulations with locally optimal Steiner points",
 %   SIAM Journal on Sci. Comp. 31(3) 2009, pp: 2103--2130.
+%   Generally speaking, the Delaunay-refinement method impl-
+%   emented here is a variantion of the original algorithm 
+%   described in: J. Ruppert, "A Delaunay refinement algori-
+%   thm for quality 2-dimensional mesh generation." Journal 
+%   of algorithms 18(3) 1995, pp: 548--585. See also: S. Ch-
+%   eng, T. Dey and J. Shewchuk, "Delaunay mesh generation",
+%   CRC Press, 2012, for a comprehensive coverage of Delaun-
+%   ay-based meshing techniques.
 
-%   A more advanced, and fully three-dimensional implementa-
-%   tion is available as part of the JIGSAW pacakge. For de-
-%   tails, see github.com/dengwirda/jigsaw-matlab.
+%   A much more advanced, and fully three-dimensional imple-
+%   mentation is available as part of the JIGSAW library. 
+%   For details, see: github.com/dengwirda/jigsaw-matlab.
 
 %   Darren Engwirda : 2017 --
 %   Email           : engwirda@mit.edu

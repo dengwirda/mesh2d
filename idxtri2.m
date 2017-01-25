@@ -13,7 +13,7 @@ function [tree] = idxtri2(vert,tria)
 
 %   Darren Engwirda : 2017 --
 %   Email           : engwirda@mit.edu
-%   Last updated    : 23/01/2017
+%   Last updated    : 25/01/2017
 
     filename = mfilename('fullpath');
     filepath = fileparts( filename );
@@ -54,14 +54,14 @@ function [tree] = idxtri2(vert,tria)
     
     for ii = 2 : size(tria,2)    
         bmin = ...
-        min(bmin,vert(tria(:,ii),:)) ;
+        min(bmin,vert(tria(:,ii), :));
         bmax = ...
-        max(bmax,vert(tria(:,ii),:)) ;
+        max(bmax,vert(tria(:,ii), :));
     end
 
-    topt.nobj = +8 ;
-    
-    tree = maketree([bmin,bmax],topt);
+    opts.nobj = +16 ;
+
+    tree = maketree([bmin,bmax],opts);
 
 end
 
