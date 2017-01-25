@@ -43,7 +43,7 @@ function [tr] = maketree(rp,varargin)
 %
 %   See also DRAWTREE, FINDBALL
 
-% Please the following for additional information:
+% Please see the following for additional information:
 %
 %   Engwirda, D. Unstructured tessellation and mesh generat-
 %   ion. Ph.D. Thesis, School of Mathematics and Statistics, 
@@ -51,7 +51,7 @@ function [tr] = maketree(rp,varargin)
 
 %   Darren Engwirda : 2014 --
 %   Email           : engwirda@mit.edu
-%   Last updated    : 18/12/2014
+%   Last updated    : 25/01/2017
 
     tr.xx = []; tr.ii = []; tr.ll = {}; op = [];
 %------------------------------ quick return on empty inputs
@@ -94,7 +94,7 @@ function [tr] = maketree(rp,varargin)
             op.long = .75; 
         end
     end
-    
+
 %---------------------------------- dimensions of rectangles
     nd = size(rp,2) / +2 ;
     ni = size(rp,1) ;
@@ -108,6 +108,11 @@ function [tr] = maketree(rp,varargin)
     rv = false(size(rp,2),1);
     lv((1:nd)+nd*+0) = true ;
     rv((1:nd)+nd*+1) = true ;
+
+%----------------------------------------- inflate rectangle
+    rd = rp(:,rv)-rp(:,lv);
+    rp(:,lv) = rp(:,lv)-rd*eps^.8;
+    rp(:,rv) = rp(:,rv)+rd*eps^.8;
     
 %----------------------------------------- rectangle centres
     rc =(rp(:,lv)+rp(:,rv)) * +.5;

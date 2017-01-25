@@ -54,7 +54,7 @@ function [tp,tj,tr] = findtria(pp,tt,pj,ty,varargin)
 
 %   Darren Engwirda : 2014 --
 %   Email           : engwirda@mit.edu
-%   Last updated    : 18/12/2014
+%   Last updated    : 25/01/2017
 
     tp = []; tj = []; tr = []; op = [];
 %------------------------------ quick return on empty inputs
@@ -186,7 +186,7 @@ function [ip,it] = testpts(pp,tt,pi,pk,tk)
 
     switch (size(tt,2))
         case 3
-    %-------------------------------- pts in 2-simplexes
+    %------------------------------------ pts in 2-simplexes
         pk = pk';
         pk = pk(ones(mt,1),:); pk = pk(:);
         tk = tk(:,ones(1,mp)); tk = tk(:);
@@ -196,7 +196,7 @@ function [ip,it] = testpts(pp,tt,pi,pk,tk)
         it = tk(in);
 
         case 4
-    %-------------------------------- pts in 3-simplexes
+    %------------------------------------ pts in 3-simplexes
         pk = pk';
         pk = pk(ones(mt,1),:); pk = pk(:);
         tk = tk(:,ones(1,mp)); tk = tk(:);
@@ -206,7 +206,7 @@ function [ip,it] = testpts(pp,tt,pi,pk,tk)
         it = tk(in);
 
         otherwise
-    %-------------------------------- pts in d-simplexes
+    %------------------------------------ pts in d-simplexes
        [il,jl] = intrian(pp,tt(tk,:),pi(pk,:));
         ip = pk(il(:));
         it = tk(jl(:));
@@ -227,11 +227,12 @@ function [in] = intria2(pp,tt,pi)
     aa(:,2) = vj(:,1).*vk(:,2) - ...
               vk(:,1).*vj(:,2) ;
     aa(:,3) = vk(:,1).*vi(:,2) - ...
-              vi(:,1).*vk(:,2) ;
+              vi(:,1).*vk(:,2) ;         
 %------------------------------- PI is internal if same sign
-    rt = sum(abs(aa),2) * eps^.9 ;
+    rt = eps^.8 * vol2(pp,tt).^2 ;
     in = aa(:,1).*aa(:,2) >= -rt ...
-       & aa(:,2).*aa(:,3) >= -rt ;
+       & aa(:,2).*aa(:,3) >= -rt ...
+       & aa(:,3).*aa(:,1) >= -rt ;
         
 end
 
@@ -273,10 +274,57 @@ function [in] = intria3(pp,tt,pi)
    +v3(:,3).*(v4(:,1).*v1(:,2) - ...
               v4(:,2).*v1(:,1) ) ;
 %------------------------------- PI is internal if same sign
-    rt = sum(abs(aa),2) * eps^.9 ;  
+    rt = eps^.8 * vol3(pp,tt).^2 ;
     in = aa(:,1).*aa(:,2) >= -rt ...
-       & aa(:,3).*aa(:,3) >= -rt ...
+       & aa(:,1).*aa(:,3) >= -rt ...
+       & aa(:,1).*aa(:,4) >= -rt ...
+       & aa(:,2).*aa(:,3) >= -rt ...
+       & aa(:,2).*aa(:,4) >= -rt ...
        & aa(:,3).*aa(:,4) >= -rt ;
+       
+end
+
+function [vol2] = vol2(pp,t2)
+%VOL2 returns (signed) "volumes" for 2-simplexes.
+
+    vv12 = pp(t2(:,2),:)-pp(t2(:,1),:);
+    vv13 = pp(t2(:,3),:)-pp(t2(:,1),:);
+
+    switch (size(pp,2))
+        case +2
+           
+        vol2 = vv12(:,1).*vv13(:,2) ...
+             - vv12(:,2).*vv13(:,1) ;
+        vol2 = 0.5 * vol2;
+            
+        case +3
+            
+        avec = cross(vv12,vv13);
+        vol2 = sqrt(sum(avec.^2,2)) ;
+        vol2 = 0.5 * vol2;    
+        
+    end
+    
+end
+
+function [vol3] = vol3(pp,t3)
+%VOL2 returns (signed) "volumes" for 3-simplexes.
+
+    vv14 = pp(t3(:,4),:)-pp(t3(:,1),:);
+    vv24 = pp(t3(:,4),:)-pp(t3(:,2),:);
+    vv34 = pp(t3(:,4),:)-pp(t3(:,3),:);
+
+    vdet = + vv14(:,1) .* ...
+            (vv24(:,2).*vv34(:,3)  ...
+           - vv24(:,3).*vv34(:,2)) ...
+           - vv14(:,2) .* ...
+            (vv24(:,1).*vv34(:,3)  ...
+           - vv24(:,3).*vv34(:,1)) ...
+           + vv14(:,3) .* ...
+            (vv24(:,1).*vv34(:,2)  ...
+           - vv24(:,2).*vv34(:,1)) ;
+
+    vol3 = vdet / 6.0;
 
 end
 
