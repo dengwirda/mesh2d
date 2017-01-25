@@ -62,10 +62,10 @@ function [ee,tt] = tricon2(varargin)
   %[ee, iv, jv] = ...
   %     unique(sort(ee, 2), 'rows');
    
-%-- a (much) faster alternative the 'rows' based unique call
-%-- above can be achieved by casting the edge list (i.e. pa-
-%-- irs of uint32 values) to double, and performing the sor-
-%-- ted operations on vector inputs! 
+%-- as a (much) faster alternative to the 'ROWS' based call
+%-- to UNIQUE above, the edge list (i.e. pairs of UINT32 va-
+%-- lues) can be cast to DOUBLE, and the sorted comparisons 
+%-- performed on vector inputs! 
     ee = sort(ee,2);
    [ed,iv,jv] = unique(ee*[2^31;1]);  
     ee = ee (iv, :);
@@ -99,9 +99,9 @@ function [ee,tt] = tricon2(varargin)
    %is = ismember( ...
    %   ee(:,1:2),sort(cc,2),'rows');
    
-%-- as above, the 'rows' based call to ismember can be sped
-%-- up by casting the edge lists (i.e. pairs of uint32 valu-
-%-- es) to double, and performing the sorted queries on vec-
+%-- as above, the 'ROWS' based call to ISMEMBER can be sped
+%-- up by casting the edge lists (i.e. pairs of UINT32 valu-
+%-- es) to DOUBLE, and performing the sorted queries on vec-
 %-- tor inputs!
     cc = sort(cc,2);
     is = ismember(ed, cc*[2^31;+1]);
