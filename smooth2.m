@@ -44,7 +44,7 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
 
 %   Darren Engwirda : 2017 --
 %   Email           : engwirda@mit.edu
-%   Last updated    : 25/01/2017
+%   Last updated    : 26/01/2017
     
     filename = mfilename('fullpath');
     filepath = fileparts( filename );
@@ -63,7 +63,12 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
     if (nargin>=+6), hfun = varargin{6}; end
     if (nargin>=+7), harg = varargin(7:end); end
 
-   [opts] = makeopt(opts);
+   [opts] = makeopt(opts) ;
+
+%---------------------------------------------- default TNUM
+    if (isempty(tnum)), 
+        tnum = ones(size(tria, 1), 1) ; 
+    end
 
 %---------------------------------------------- basic checks    
     if ( ~isnumeric(vert) || ...
