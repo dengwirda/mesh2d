@@ -96,7 +96,7 @@ function [vert,conn,tria,tnum] = refine2(varargin)
 
 %   Darren Engwirda : 2017 --
 %   Email           : engwirda@mit.edu
-%   Last updated    : 25/01/2017
+%   Last updated    : 26/01/2017
     
     filename = mfilename('fullpath') ;
     filepath = fileparts( filename ) ;
@@ -642,23 +642,22 @@ function [vert,conn,tria,tnum,iter] = ...
     %-- diagram, bounded by assoc. circmballs. New points
     %-- are placed to satisfy the worst of local mesh-length 
     %-- and element-shape constraints.
-             
+     
         ttic = tic ;
-             
-        ftri = false(length(num2),1);
-        tadj = zeros(length(num2),1);
-
+    
+        ftri = false(length(num2),1) ;
+        tadj = zeros(length(num2),1) ;
+    
     %------------------------------------- find frontal edge
        [lmin,emin] = ...
             minlen2(vert,tria(num2,:)) ;
 
-        epos = zeros(length(num2),1);
+        epos = zeros(length(num2),1) ;
 
         for ii = +1 : length(epos)
             epos(ii) = ...
               tria(num2(ii),emin(ii)+3);
         end
-
     %------------------------------------- find neighb. tria
         for ii = +1 : length(epos)
         if (num2(ii)~= edge(epos(ii),3))
@@ -677,103 +676,112 @@ function [vert,conn,tria,tnum,iter] = ...
         end
         end
         
-    %------------------------------------- do circ-ball pt's
-        new2 = zeros(length(num2),3);
-        new2(:,1:2) = bal2(num2,1:2);
-        new2(:,  3) = ...
-            bal2(num2,3)*bias^2 ;
-       
     %------------------------------------- locate offcentres 
-        fedg = epos(ftri);
-        
-        emid = vert(edge(fedg,+1),:) ...
-             + vert(edge(fedg,+2),:) ;
+        emid = vert(edge(epos,+1),:) ...
+             + vert(edge(epos,+2),:) ;
         emid = emid * +0.50 ;
         
-        elen = sqrt(lmin(ftri)) ;
-    
-    %------------------------------------- "voro"-type dist.    
-        ovec = new2(ftri,1:2)-emid ;
-        olen = sqrt(sum(ovec.^2,2));
-        ovec = ovec ./ [olen,olen] ;
+        elen = sqrt(lmin(:));
         
-        hmid = fun0(edge(fedg,+1),:) ...
-             + fun0(edge(fedg,+2),:) ;
+    %------------------------------------- "voro"-type dist.    
+        vvec = bal2(num2,1:2)-emid ;
+        vlen = sqrt(sum(vvec.^2,2));
+        vvec = vvec ./ [vlen,vlen] ;
+        
+        hmid = fun0(edge(epos,+1),:) ...
+             + fun0(edge(epos,+2),:) ;
         hmid = hmid * +0.50 ;
         
     %------------------------------------- "ball"-type dist.
         rtri = elen * opts.off2 ;
-        rfac = elen * 0.50;
+        rfac = elen * +0.50 ;
         dsqr = rtri.^2 - rfac.^2;
         doff = rtri + ...
             sqrt(max(+0.,dsqr)) ;
         
     %------------------------------------- "size"-type dist.
-        dsiz = sqrt(3.) / 2.* hmid ;
+        dsiz = +sqrt(3.)/2. * hmid ;
    
     %------------------------------------- bind "safe" dist.
-        dist = ...
-          min([dsiz,doff,olen],[],2) ;
-
+       [dist,ioff] = ...
+          min([dsiz,doff,vlen],[],2) ;
+    
     %------------------------------------- locate offcentres
         off2 = ...
-        emid + [dist,dist] .* ovec ;
-  
+        emid + [dist,dist] .* vvec ;
+    
     %------------------------------------- iter. "size"-type
         for ioff = +1 : +4
     %------------------------------------- eval. length-fun.           
         if (~isempty(hfun))
             if (isnumeric(hfun))
             hprj = hfun * ...
-              ones(size(off2,1),1);
+              ones(size(off2,1),1) ;
             else
             hprj = feval( ...
-                hfun,off2,harg{:});
+                hfun,off2,harg{:}) ;
             end
         else
             hprj = +inf * ...
-              ones(size(off2,1),1);
+              ones(size(off2,1),1) ;
         end
 
     %------------------------------------- "size"-type dist.        
         hprj = 0.5*hmid + 0.5*hprj ;
         
-        dsiz = sqrt(3.) / 2.* hprj ;
+        dsiz = +sqrt(3.)/2. * hprj ;
         
     %------------------------------------- bind "safe" dist. 
-        dist = ...
-          min([dsiz,doff,olen],[],2) ;
+       [dist,ioff] = ...
+          min([dsiz,doff,vlen],[],2) ;
 
     %------------------------------------- locate offcentres
         off2 = ...
-        emid + [dist,dist] .* ovec ;
+        emid + [dist,dist] .* vvec ;
             
         end
-   
-    %------------------------------------- keep frontal pt's
+    
         orad = ...    
         sqrt((elen*.5).^2 + dist.^2) ;
         
-        if (any(ftri))
-            new2 = ... 
-        [off2(:,1:2),(bias*orad).^2] ;
-        else
-            %-- circ-ball fall-back!
-        end
+    %------------------------------------- select offcentres
+        vtri = ioff == +3 ;             %- voronoi-points
+        ftri = ioff ~= +3 ...           %- frontal-points
+             & ftri ;
+ 
+    %-- since this is a "multirefinement" type approach, try
+    %-- to place as many points in one pass as possible. We
+    %-- could place just the "frontal" offcentres, but appa-
+    %-- rantly, also pushing the circumcentres when they are
+    %-- locally closest to their respective frontal edges
+    %-- works just fine too! This approach also deals with a
+    %-- few issues that occur when |FTRI| is small. Specifi-
+    %-- cally, it ensures that the proximity/encroachment
+    %-- filters below can't zip the insertions away to zero!
+             
+        keep = ftri | vtri;
+             
+    %------------------------------------- do offcentre pt's
+        new2 = ...
+        zeros(length(find(keep)), 1) ;
         
+        new2(:,1:2) = off2(keep,1:2) ;
+        new2(:,  3) = ...
+           (orad(keep) * bias) .^ 2;
+       
         tcpu.offc = ...
             tcpu.offc + toc (ttic) ;
-        
+           
         
         end % switch(lower(opts.kind))
 
     %------------------------------------- inter.-ball dist.
         ttic = tic ;
-       
+      
+    %------------------------------------- proximity filters
        [vp,vi] = ...
           findball(new2,new2(:,1:2));
-
-    %------------------------------------- proximity filters
+       
         keep = true (size(new2,1),1);
         for ii = size(vp,1):-1:+1
             for ip = vp(ii,1) ...
@@ -786,7 +794,7 @@ function [vert,conn,tria,tnum,iter] = ...
         end
 
         new2 = new2(keep,:);
-
+       
     %------------------------------------- find encroachment
        [vp,vi] = ...
           findball(bal1,new2(:,1:2));
@@ -831,7 +839,7 @@ function [vert,conn,tria,tnum,iter] = ...
         vert = [vert; new2(:,1:2)];
         nnew = size(vert,1);
 
-        if (nnew == nold), break; end
+        if (nnew == nold), break; end   %- we *must* be done
         
     end
 
