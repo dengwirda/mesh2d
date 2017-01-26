@@ -44,7 +44,7 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
 
 %   Darren Engwirda : 2017 --
 %   Email           : engwirda@mit.edu
-%   Last updated    : 24/01/2017
+%   Last updated    : 25/01/2017
     
     filename = mfilename('fullpath');
     filepath = fileparts( filename );
@@ -123,24 +123,23 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
     node = vert; PSLG = conn; part = {};
 
     pmax = max(tnum(:));
-    PSLG = sort(PSLG,2);
     for ppos = +1 : pmax
-    
-    %!! what about "interior" constraints?? 
     
         tsel = tnum == ppos ;
         tcur = tria(tsel,:) ;
         
        [ecur,tcur] = tricon2(tcur) ;
-       
-        same = ismember( ...
-          PSLG,ecur(:,1:2),'rows') ;
     
-        part{ppos} = find(same);
+        ebnd = ecur(:,4)==0 ;
+    
+        same = setset2( ...
+            PSLG,ecur(ebnd,1:2));
+    
+        part{ppos} = find(same) ;
     
     end
 
-%---------------------------------------------- do mesh iter
+%---------------------------------------------- DO MESH ITER
     for iter = +1 : opts.iter
 
     %------------------------------------------ inflate adj.

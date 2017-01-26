@@ -96,7 +96,7 @@ function [vert,conn,tria,tnum] = refine2(varargin)
 
 %   Darren Engwirda : 2017 --
 %   Email           : engwirda@mit.edu
-%   Last updated    : 24/01/2017
+%   Last updated    : 25/01/2017
     
     filename = mfilename('fullpath') ;
     filepath = fileparts( filename ) ;
@@ -306,16 +306,12 @@ function [vert,conn,tria,tnum,iter] = ...
     %-- via an existing edge...         
             ivrt = conn(near(:,2),1);
             jvrt = conn(near(:,2),2);
- 
-            conn = sort(conn,2);
         
             pair = [near(:,1), ivrt];   
-            ivec = ismember( ...
-            sort(pair,2),conn,'rows') ;
+            ivec = setset2(pair,conn) ;
             
             pair = [near(:,1), jvrt];
-            jvec = ismember( ...
-            sort(pair,2),conn,'rows') ;
+            jvec = setset2(pair,conn) ;
            
             okay = ~ivec & ~jvec ;
             
@@ -603,11 +599,11 @@ function [vert,conn,tria,tnum,iter] = ...
         ref1 = false(size(conn,1),1);
         ref2 = false(size(tria,1),1);
         
-        skip = isfeat2(vert,edge,tria) ;
+        stri = isfeat2(vert,edge,tria) ;
         
         ref2(rho2>opts.rho2* ...        %- bad rad-edge len.
                   opts.rho2) = true ;
-        ref2(skip) = false ;
+        ref2(stri) = false ;
         ref2(siz2>opts.siz2* ...        %- bad equiv. length
                   opts.siz2) = true ;
         
@@ -761,10 +757,12 @@ function [vert,conn,tria,tnum,iter] = ...
         if (any(ftri))
             new2 = ... 
         [off2(:,1:2),(bias*orad).^2] ;
+        else
+            %-- circ-ball fall-back!
         end
         
         tcpu.offc = ...
-            tcpu.offc + toc(ttic) ;
+            tcpu.offc + toc (ttic) ;
         
         
         end % switch(lower(opts.kind))
@@ -802,7 +800,17 @@ function [vert,conn,tria,tnum,iter] = ...
                 keep(ii) = false ;
             end
         end
+ 
+    %------------------------------------- leave sharp edges      
+        ebnd = false(size(edge,1),1);
+        ebnd(tria(stri,4:6)) = true ;
         
+        enot = ...
+        setset2(conn,edge(ebnd,1:2));
+               
+        ref1(enot) = false ;
+ 
+    %------------------------------------- refinement points
         new2 = new2(keep,:);
         new1 = bal1(ref1,:);
        
@@ -818,8 +826,12 @@ function [vert,conn,tria,tnum,iter] = ...
         conn = [conn(~ref1,:); cnew];
  
     %------------------------------------- update vertex set              
+        nold = size(vert,1);
         vert = [vert; new1(:,1:2)];
         vert = [vert; new2(:,1:2)];
+        nnew = size(vert,1);
+
+        if (nnew == nold), break; end
         
     end
 
