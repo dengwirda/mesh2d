@@ -1,4 +1,4 @@
-function [is] = isfeat2(pp,ee,tt)
+function [is,bv] = isfeat2(pp,ee,tt)
 %ISFEAT2 return "feature" status for the triangles in a two-
 %dimensional constrained triangulation.
 %   [STAT] = ISFEAT2(VERT,EDGE,TRIA) returns STAT(II) = TRUE
@@ -8,7 +8,7 @@ function [is] = isfeat2(pp,ee,tt)
 
 %   Darren Engwirda : 2017 --
 %   Email           : engwirda@mit.edu
-%   Last updated    : 16/01/2017
+%   Last updated    : 27/01/2017
 
 %---------------------------------------------- basic checks    
     if (~isnumeric(pp) || ~isnumeric(ee) || ...
@@ -57,6 +57,7 @@ function [is] = isfeat2(pp,ee,tt)
 
 %----------------------------------------- compute "feature"
     is = false(size(tt,1),1);
+    bv = false(size(tt,1),3);
 
     EI = [3, 1, 2] ;
     EJ = [1, 2, 3] ;    
@@ -95,8 +96,11 @@ function [is] = isfeat2(pp,ee,tt)
     %------------------------------------- adj. dot-product!
         aa = sum(vi.*vj,2)./ll ;
     
-        is(ok) = is(ok)|aa>+.8 ;
+        bv(ok,ii) = aa >= +.80 ;
     
+        is(ok) = ...
+            is(ok) | bv(ok,ii) ;
+ 
     end
 
 end

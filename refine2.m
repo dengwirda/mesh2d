@@ -96,7 +96,7 @@ function [vert,conn,tria,tnum] = refine2(varargin)
 
 %   Darren Engwirda : 2017 --
 %   Email           : engwirda@mit.edu
-%   Last updated    : 26/01/2017
+%   Last updated    : 27/01/2017
     
     filename = mfilename('fullpath') ;
     filepath = fileparts( filename ) ;
@@ -126,9 +126,7 @@ function [vert,conn,tria,tnum] = refine2(varargin)
 %---------------------------------------------- default PART    
     ncon = size(PSLG,1);
     
-    if (isempty(part))
-        part{1} = (1:ncon)';
-    end
+    if (isempty(part)), part{1} = (1:ncon)'; end
     
 %---------------------------------------------- basic checks    
     if (~isnumeric(node) || ~isnumeric(PSLG) || ...
@@ -191,6 +189,11 @@ function [vert,conn,tria,tnum] = refine2(varargin)
            ] ;
     vert = [vert; vbox] ;
 
+%-------------------------------- PASS 0: protect 0-features
+   [vert,conn,tria,tnum,iter] = ...
+        balref0(vert,conn,tria,tnum, ...
+            node,PSLG,part,opts,hfun,harg,iter);
+
 %-------------------------------- PASS 1: refine 1-simplexes
    [vert,conn,tria,tnum,iter] = ...
         cdtref1(vert,conn,tria,tnum, ...
@@ -206,6 +209,132 @@ function [vert,conn,tria,tnum] = refine2(varargin)
     
     if (~isinf(opts.disp)), fprintf(1,'\n'); end
     
+end
+
+function [vert,conn,tria,tnum,iter] = ...
+            balref0(vert,conn,tria,tnum, ...
+                node,PSLG,part,opts,hfun,harg,iter)
+%BALREF0 constrained Delaunay-refinement for "sharp" 0-dim.
+%features at PSLG vertices.
+%   [...] = BALREF0(...) refines the set of 1-simplex eleme-
+%   nts incident to "sharp" features in the PSLG. Specifica-
+%   lly, edges that subtend "small" angles are split about a
+%   set of new "collar" vertices, equi-distributed about the
+%   centre of "sharp" features.   
+
+    if (iter <= opts.iter)
+
+    %------------------------------------- build current CDT
+       [vert,conn, ...
+        tria,tnum] = deltri2(vert,conn, ...
+                             node,PSLG, ...
+                             part) ;
+                            
+    %------------------------------------- build current adj
+       [edge,tria] = tricon2(tria,conn) ;
+       
+       [feat,ftri] = isfeat2(vert,edge, ...
+                             tria) ;
+    
+        apex = false(size(vert,1), 1) ;
+        apex(tria(ftri)) =  true ;
+      
+    %------------------------------------- eval. length-fun.
+        if (~isempty(hfun))
+            if (isnumeric(hfun))
+            vlen = hfun * ...
+              ones(size(vert,1),1) ;
+            else
+            vlen = feval( ...
+                hfun,vert,harg{:}) ;
+            vlen = vlen(:) ;
+            end
+        else
+            vlen = +inf * ...
+              ones(size(vert,1),1) ;
+        end
+
+    %------------------------------------- form edge vectors
+        evec = vert(conn(:,2),:) ...
+             - vert(conn(:,1),:) ;
+        elen = sqrt(sum(evec.^2,2));
+        evec = evec./[elen,elen] ;
+        
+    %------------------------------------- min. adj. lengths       
+        for epos = +1 : size(conn,1)
+        
+            ivrt = conn(epos,1) ;
+            jvrt = conn(epos,2) ;
+        
+            vlen(ivrt) = min( ...
+            vlen(ivrt), .67*elen(epos)) ;
+            vlen(jvrt) = min( ...
+            vlen(jvrt), .67*elen(epos)) ;
+                
+        end
+            
+    %------------------------------------- mark feature edge     
+        iref = apex(conn(:,1)) ...      %- refine at vert. 1
+            & ~apex(conn(:,2)) ;
+        jref = apex(conn(:,2)) ...      %- refine at vert. 2
+            & ~apex(conn(:,1)) ;
+        dref = apex(conn(:,1)) ...      %- refine at both!
+            &  apex(conn(:,2)) ;
+            
+        keep =~apex(conn(:,1)) ...      %- refine at neither
+            & ~apex(conn(:,2)) ;
+
+    %------------------------------------- protecting collar
+        ilen = vlen(conn(iref,1)) ;       
+        inew = vert(conn(iref,1),:) ...
+        + [ilen,ilen].*evec(iref,:) ;
+          
+        jlen = vlen(conn(jref,2)) ;       
+        jnew = vert(conn(jref,2),:) ...
+        - [jlen,jlen].*evec(jref,:) ;
+        
+        Ilen = vlen(conn(dref,1)) ;       
+        Inew = vert(conn(dref,1),:) ...
+        + [Ilen,Ilen].*evec(dref,:) ;
+          
+        Jlen = vlen(conn(dref,2)) ;       
+        Jnew = vert(conn(dref,2),:) ...
+        - [Jlen,Jlen].*evec(dref,:) ;
+        
+        vnew = [inew; jnew; Inew; Jnew] ;
+     
+    %------------------------------------- add new vert/edge   
+        iset = (1:size(inew,1))' ...
+                + size(vert,1) ;
+        
+        jset = (1:size(jnew,1))' ...
+                + size(inew,1) + ...
+                + size(vert,1) ;
+                
+        Iset = (1:size(Inew,1))' ...
+                + size(inew,1) + ...
+                + size(jnew,1) + ...
+                + size(vert,1) ;
+                
+        Jset = (1:size(Jnew,1))' ...
+                + size(inew,1) + ...
+                + size(jnew,1) + ...
+                + size(Inew,1) + ...
+                + size(vert,1) ;
+  
+        vert = [vert ; vnew] ;
+  
+        cnew = [conn(iref,1), iset ;
+                conn(iref,2), iset ;
+                conn(jref,2), jset ;
+                conn(jref,1), jset ;
+                conn(dref,1), Iset ;
+                conn(dref,2), Jset ;
+                Iset, Jset] ;
+        conn = [conn(keep,:); cnew ] ;
+        
+    end       
+       
 end
 
 function [vert,conn,tria,tnum,iter] = ...
@@ -233,9 +362,12 @@ function [vert,conn,tria,tnum,iter] = ...
     tcpu.encr = +0. ;
     tcpu.offc = +0. ;
     
+    vidx = (1:size(vert,1))';     %- "new" vert list to test
+    cidx = (1:size(conn,1))';     %- "new" edge list to test
+
     tnow =  tic ;
 
-    ntol = +1.60;
+    ntol = +1.55;
 
     while  (true)
     
@@ -260,8 +392,10 @@ function [vert,conn,tria,tnum,iter] = ...
               ones(size(vert,1),1);
             fun1 = hfun ;
             else
-            fun0 = feval( ...
-                hfun,vert,harg{:});
+            fun0(vidx) = ...
+                feval(hfun, ...
+            vert(vidx,:), harg{:});
+            fun0 = fun0(:) ;
             fun1 = fun0(conn(:,1))...
                  + fun0(conn(:,2));
             fun1 = fun1 / +2. ;
@@ -284,21 +418,26 @@ function [vert,conn,tria,tnum,iter] = ...
         bal1(:,3) = ...
             (1.-eps^.75) * bal1(:,3) ;
   
-       [vp,vi] = ...
-          findball(bal1,vert(:,1:2)) ;
+       [vp,vi] = findball( ...
+            bal1(cidx,:),vert(:,1:2));
 
     %------------------------------------- near=>[vert,edge]
+        next = +0;
         ebad = false(size(conn,1),1) ;
-        near = [];
+        near = zeros(size(conn,1),1) ;
         for ii = +1 : size(vp,1)
             for ip = vp(ii,1):vp(ii,2)
-                jj = vi(ip) ;
+                jj = cidx(vi(ip));
                 if (ii ~= conn(jj,1) ...
                 &&  ii ~= conn(jj,2) )
-                near = [near; ii,jj] ;
+                next = next + 1;
+                near(next,1) = ii;
+                near(next,2) = jj;
                 end
             end
         end
+        
+        near = near(1:next-0,:);
         
         if (~isempty(near))
     %-- mark edge "encroached" if there is a vert within its
@@ -320,7 +459,7 @@ function [vert,conn,tria,tnum,iter] = ...
         end
         
         tcpu.encr = ...
-            tcpu.encr + toc(ttic) ;
+            tcpu.encr + toc(ttic);
         
     %------------------------------------- refinement queues
         ref1 = false(size(conn,1),1);      
@@ -331,8 +470,7 @@ function [vert,conn,tria,tnum,iter] = ...
         num1 = find(ref1)  ;
       
     %------------------------------------- dump-out progess!
-        if (mod(iter,opts.disp)==+0 || ...
-                isempty(num1) )
+        if (mod(iter,opts.disp)==0)
             numc = size(conn,1) ;
             numt = size(tria,1) ;
             fprintf(+1, ...
@@ -349,16 +487,19 @@ function [vert,conn,tria,tnum,iter] = ...
     %------------------------------------- do circ-ball pt's
         new1 = bal1(ref1, 1:2) ;
         
-        vnew = (1:size(new1,1))' ...
+        vidx = (1:size(new1,1))' ...
                 + size(vert,1) ;
         
-        cnew = [conn( ref1,1), vnew
-                conn( ref1,2), vnew];
+        cnew = [conn( ref1,1), vidx
+                conn( ref1,2), vidx];
         conn = [conn(~ref1,:); cnew];
+        
+        cidx = (1:size(cnew,1))' ...
+          + length(find(~ref1));
             
     %------------------------------------- update vertex set    
         vert = [vert; new1(:,1:2)];
-  
+        
         
         case 'delfront'
     %-- symmetric off-centre scheme:- refine edges from both
@@ -374,15 +515,15 @@ function [vert,conn,tria,tnum,iter] = ...
         evec = evec ./ [elen, elen] ;
   
     %------------------------------------- "voro"-type dist.
-        olen = sqrt(bal1(ref1,3));
+        vlen = sqrt(bal1(ref1,3));
         
     %------------------------------------- "size"-type dist.
         ihfn = fun0(conn(ref1,1));
         jhfn = fun0(conn(ref1,2));
         
     %------------------------------------- bind "safe" dist.
-        ilen = min(olen,ihfn) ;
-        jlen = min(olen,jhfn) ;
+        ilen = min(vlen,ihfn) ;
+        jlen = min(vlen,jhfn) ;
  
     %------------------------------------- locate offcentres       
         inew = vert(conn(ref1,1),:) ...
@@ -404,6 +545,8 @@ function [vert,conn,tria,tnum,iter] = ...
                 hfun,inew,harg{:});
             jprj = feval( ...
                 hfun,jnew,harg{:});
+            iprj = iprj(:);
+            jprj = jprj(:);
             end
         else
             iprj = +inf * ...
@@ -416,8 +559,8 @@ function [vert,conn,tria,tnum,iter] = ...
         jprj = 0.5*jhfn + 0.5*jprj;
 
     %------------------------------------- bind "safe" dist.
-        ilen = min(olen,ihfn) ;
-        jlen = min(olen,jhfn) ;
+        ilen = min(vlen,iprj) ;
+        jlen = min(vlen,jprj) ;
  
     %------------------------------------- locate offcentres       
         inew = vert(conn(ref1,1),:) ...
@@ -429,7 +572,7 @@ function [vert,conn,tria,tnum,iter] = ...
         
     %------------------------------------- merge i,j if near        
         near = ...
-            ilen+jlen>=olen*ntol ;
+            ilen+jlen>=vlen*ntol ;
         
         znew = inew(near,:) * .5 ...
              + jnew(near,:) * .5 ;
@@ -465,6 +608,11 @@ function [vert,conn,tria,tnum,iter] = ...
         vert = [vert; inew(:,1:2)];
         vert = [vert; jnew(:,1:2)];
 
+        vidx = [zset; iset; jset] ;
+        
+        cidx = (1:size(cnew,1))' ...
+            + length(find(~ref1)) ;
+
         tcpu.offc = ...
             tcpu.offc + toc(ttic) ;
                        
@@ -474,7 +622,16 @@ function [vert,conn,tria,tnum,iter] = ...
     end
 
     tcpu.full = ...
-        tcpu.full + toc(tnow);
+        tcpu.full + toc(tnow) ;
+
+    if (~isinf(opts.disp) )
+    %------------------------------------- print final stats
+        numc = size(conn,1) ;
+        numt = size(tria,1) ;
+        fprintf(+1, ...
+        '%11i %18i %18i\n', ...
+        [iter,numc,numt]) ;
+    end
 
     if (opts.dbug)
     %------------------------------------- print debug timer 
@@ -578,6 +735,7 @@ function [vert,conn,tria,tnum,iter] = ...
             else
             fun0 = feval( ...
                 hfun,vert,harg{:});
+            fun0 = fun0(:) ;
             fun2 = fun0(tria(:,1))...
                  + fun0(tria(:,2))...
                  + fun0(tria(:,3));
@@ -610,8 +768,7 @@ function [vert,conn,tria,tnum,iter] = ...
         num2 = find(ref2);
       
     %------------------------------------- dump-out progess!
-        if (mod(iter,opts.disp)==+0 || ...
-                isempty(num2) )
+        if (mod(iter,opts.disp)==0)
             numc = size(conn,1) ;
             numt = size(tria,1) ;
             fprintf(+1, ...
@@ -711,7 +868,7 @@ function [vert,conn,tria,tnum,iter] = ...
         emid + [dist,dist] .* vvec ;
     
     %------------------------------------- iter. "size"-type
-        for ioff = +1 : +4
+        for isub = +1 : +4
     %------------------------------------- eval. length-fun.           
         if (~isempty(hfun))
             if (isnumeric(hfun))
@@ -720,6 +877,7 @@ function [vert,conn,tria,tnum,iter] = ...
             else
             hprj = feval( ...
                 hfun,off2,harg{:}) ;
+            hprj = hprj(:) ;
             end
         else
             hprj = +inf * ...
@@ -758,7 +916,7 @@ function [vert,conn,tria,tnum,iter] = ...
     %-- few issues that occur when |FTRI| is small. Specifi-
     %-- cally, it ensures that the proximity/encroachment
     %-- filters below can't zip the insertions away to zero!
-             
+
         keep = ftri | vtri;
              
     %------------------------------------- do offcentre pt's
@@ -844,7 +1002,16 @@ function [vert,conn,tria,tnum,iter] = ...
     end
 
     tcpu.full = ...
-        tcpu.full + toc(tnow);
+        tcpu.full + toc(tnow) ;
+
+    if (~isinf(opts.disp) )
+    %------------------------------------- print final stats
+        numc = size(conn,1) ;
+        numt = size(tria,1) ;
+        fprintf(+1, ...
+        '%11i %18i %18i\n', ...
+        [iter,numc,numt]) ;
+    end
 
     if (opts.dbug)
     %------------------------------------- print debug timer 
