@@ -20,8 +20,9 @@ tridemo(2); % Frontal-Delaunay vs. Delaunay-refinement refinement.
 tridemo(3); % explore impact of user-defined mesh-size constraints.
 tridemo(4); % explore impact of "hill-climbing" mesh optimisations.
 tridemo(5); % assemble triangulations for "multi-part" geometries.
-tridemo(6); % larger-scale problem, mesh refinement + optimisation. 
-tridemo(7); % medium-scale problem, mesh refinement + optimisation. 
+tridemo(6); % explore use of custom, user-defined mesh-size functions.
+tridemo(7); % larger-scale problem, mesh refinement + optimisation. 
+tridemo(8); % medium-scale problem, mesh refinement + optimisation. 
 ````
 # `Attribution!`
 
