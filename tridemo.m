@@ -9,44 +9,51 @@ function tridemo(demo)
 % - DEMO-2: explore the impact of the "Frontal-Delaunay" vs.
 %   "Delaunay-refinement " algorithms. 
 %
-% - DEMO-3 explore impact of user-defined mesh-size constra-
-%   ints.
+% - DEMO-3: explore impact of user-defined mesh-size constr-
+%   aints.
 %
-% - DEMO-4 explore impact of "hill-climbing" mesh optimisat-
-%   ions.
+% - DEMO-4: explore impact of "hill-climbing" mesh optimisa-
+%   tions.
 %
-% - DEMO-5 assemble triangulations for multi-part geometry 
+% - DEMO-5: assemble triangulations for multi-part geometry 
 %   definitions.
 %
-% - DEMO-6 explore impact of user-defined mesh-size constra-
-%   ints.
+% - DEMO-6: assemble triangulations for geometries with int-
+%   ernal constraints.
 %
-% - DEMO-7 larger-scale problem, mesh refinement + optimisa-
-%   tion. 
+% - DEMO-7: investigate the use of quadtree-type refinement.
 %
-% - DEMO-8 medium-scale problem, mesh refinement + optimisa-
-%   tion. 
+% - DEMO-8: explore impact of user-defined mesh-size constr-
+%   aints.
 %
-%   See also REFINE2, SMOOTH2
+% - DEMO-9: larger-scale problem, mesh refinement + optimis-
+%   ation. 
+%
+% - DEMO10: medium-scale problem, mesh refinement + optimis-
+%   ation. 
+%
+%   See also REFINE2, SMOOTH2, TRIDIV2
 
 %   Darren Engwirda : 2017 --
 %   Email           : engwirda@mit.edu
-%   Last updated    : 23/01/2017
+%   Last updated    : 29/01/2017
 
     close all;
 
     switch (demo)
-        case 1, demo1();
-        case 2, demo2();
-        case 3, demo3();
-        case 4, demo4();
-        case 5, demo5();
-        case 6, demo6();
-        case 7, demo7();
-        case 8, demo8();
+        case  1, demo1 ();
+        case  2, demo2 ();
+        case  3, demo3 ();
+        case  4, demo4 ();
+        case  5, demo5 ();
+        case  6, demo6 ();
+        case  7, demo7 ();
+        case  8, demo8 ();
+        case  9, demo9 ();
+        case 10, demo10();
             
         otherwise
-        error('tridemo:invalidSelection', 'Invalid selection!');
+        error('tridemo:invalidSelection', 'Invalid selection!') ;
     end
 
 end
@@ -87,8 +94,12 @@ function demo1
     figure;
     patch('faces',tria(:,1:3),'vertices',vert, ...
         'facecolor','w', ...
-        'edgecolor','k') ;
+        'edgecolor',[.2,.2,.2]) ;
     hold on; axis image off;
+    patch('faces',edge(:,1:2),'vertices',node, ...
+        'facecolor','w', ...
+        'edgecolor',[.1,.1,.1], ...
+        'linewidth',1.5) ;
     title(['TRIA-MESH: RHO2<=+1.50, |TRIA|=' , ...
         num2str(size(tria,1))]) ;
     
@@ -107,8 +118,12 @@ function demo1
     figure;
     patch('faces',tria(:,1:3),'vertices',vert, ...
         'facecolor','w', ...
-        'edgecolor','k') ;
+        'edgecolor',[.2,.2,.2]) ;
     hold on; axis image off;
+    patch('faces',edge(:,1:2),'vertices',node, ...
+        'facecolor','w', ...
+        'edgecolor',[.1,.1,.1], ...
+        'linewidth',1.5) ;
     title(['TRIA-MESH: RHO2<=+1.00, |TRIA|=' , ...
         num2str(size(tria,1))]) ;
         
@@ -140,7 +155,7 @@ function demo2
 ' ed by element "quality" alone, the Frontal-Delaunay approa- \n', ...
 ' ch typically produces sigificantly sparser meshes. in both  \n', ...
 ' cases, the same worst-case element quality bounds are sati- \n', ...
-' fied in a guaranteed manner.'
+' fied in a guaranteed manner. \n', ...
         ] ) ;
  
 %---------------------------------------------- = "DELAUNAY"
@@ -151,9 +166,14 @@ function demo2
     tria,tnum] = refine2(node,edge,[]  ,opts) ;
     
     figure;
-    patch('faces',tria(:,1:3),'vertices',vert , ...
+    patch('faces',tria(:,1:3),'vertices',vert, ...
         'facecolor','w', ...
-        'edgecolor','k') ;
+        'edgecolor',[.2,.2,.2]) ;
+    hold on; axis image off;
+    patch('faces',edge(:,1:2),'vertices',node, ...
+        'facecolor','w', ...
+        'edgecolor',[.1,.1,.1], ...
+        'linewidth',1.5) ;
     hold on; axis image off;
     title(['TRIA-MESH: KIND=DELAUNAY, |TRIA|=', ...
         num2str(size(tria,1))]) ;
@@ -166,10 +186,14 @@ function demo2
     tria,tnum] = refine2(node,edge,[]  ,opts) ;
     
     figure;
-    patch('faces',tria(:,1:3),'vertices',vert , ...
+    patch('faces',tria(:,1:3),'vertices',vert, ...
         'facecolor','w', ...
-        'edgecolor','k') ;
+        'edgecolor',[.2,.2,.2]) ;
     hold on; axis image off;
+    patch('faces',edge(:,1:2),'vertices',node, ...
+        'facecolor','w', ...
+        'edgecolor',[.1,.1,.1], ...
+        'linewidth',1.5) ;
     title(['TRIA-MESH: KIND=DELFRONT, |TRIA|=', ...
         num2str(size(tria,1))]) ;
     
@@ -230,10 +254,14 @@ function demo3
                     vlfs,tlfs,slfs,hlfs);
     
     figure;
-    patch('faces',tria(:,1:3),'vertices',vert , ...
+    patch('faces',tria(:,1:3),'vertices',vert, ...
         'facecolor','w', ...
-        'edgecolor','k') ;
+        'edgecolor',[.2,.2,.2]) ;
     hold on; axis image off;
+    patch('faces',edge(:,1:2),'vertices',node, ...
+        'facecolor','w', ...
+        'edgecolor',[.1,.1,.1], ...
+        'linewidth',1.5) ;
     title(['TRIA-MESH: KIND=DELFRONT, |TRIA|=', ...
         num2str(size(tria,1))]) ;
     
@@ -284,10 +312,14 @@ function demo4
                     vlfs,tlfs,slfs,hlfs);
     
     figure;
-    patch('faces',tria(:,1:3),'vertices',vert , ...
+    patch('faces',tria(:,1:3),'vertices',vert, ...
         'facecolor','w', ...
-        'edgecolor','k') ;
+        'edgecolor',[.2,.2,.2]) ;
     hold on; axis image off;
+    patch('faces',edge(:,1:2),'vertices',node, ...
+        'facecolor','w', ...
+        'edgecolor',[.1,.1,.1], ...
+        'linewidth',1.5) ;
     title(['MESH-REF.: KIND=DELFRONT, |TRIA|=', ...
         num2str(size(tria,1))]) ;
         
@@ -296,10 +328,14 @@ function demo4
     tnew,tnum] = smooth2(vert,etri,tria,tnum) ;
     
     figure;
-    patch('faces',tnew(:,1:3),'vertices',vnew , ...
+    patch('faces',tnew(:,1:3),'vertices',vnew, ...
         'facecolor','w', ...
-        'edgecolor','k') ;
+        'edgecolor',[.2,.2,.2]) ;
     hold on; axis image off;
+    patch('faces',edge(:,1:2),'vertices',node, ...
+        'facecolor','w', ...
+        'edgecolor',[.1,.1,.1], ...
+        'linewidth',1.5) ;
     title(['MESH-OPT.: KIND=DELFRONT, |TRIA|=', ...
         num2str(size(tnew,1))]) ;
            
@@ -382,6 +418,10 @@ function demo5
     edge = [edge; ecir];
     node = [node; ncir];
     
+%-- the PART argument is a cell array that defines individu-
+%-- al polygonal "parts" of the overall geometry. Each elem-
+%-- ent PART{I} is a list of edge indexes, indicating which
+%-- edges make up the boundary of each region.
     part{1} = [ ...
         find(edge(:,3) == 0) 
         find(edge(:,3) == 1)
@@ -397,7 +437,7 @@ function demo5
     edge = edge(:,1:2) ;
     
 %---------------------------------------------- do size-fun.
-    hmax = +0.075;
+    hmax = +0.045 ;
  
    [vlfs,tlfs, ...
     hlfs] = lfshfn2(node,edge, ...
@@ -420,19 +460,20 @@ function demo5
     tria,tnum] = smooth2(vert,etri,tria,tnum) ;
     
     figure;
-    patch('faces',tria(tnum==1,1:3), ...
-        'vertices',vert, ...
-        'facecolor','w', ...
-        'edgecolor','k') ;
+    patch('faces',tria(tnum==1,1:3),'vertices',vert, ...
+        'facecolor',[1.,1.,1.], ...
+        'edgecolor',[.2,.2,.2]) ;
     hold on; axis image off;
-    patch('faces',tria(tnum==2,1:3), ...
-        'vertices',vert, ...
+    patch('faces',tria(tnum==2,1:3),'vertices',vert, ...
+        'facecolor',[.9,.9,.9], ...
+        'edgecolor',[.2,.2,.2]) ;
+    patch('faces',tria(tnum==3,1:3),'vertices',vert, ...
+        'facecolor',[.8,.8,.8], ...
+        'edgecolor',[.2,.2,.2]) ;
+    patch('faces',edge(:,1:2),'vertices',node, ...
         'facecolor','w', ...
-        'edgecolor','b') ;
-    patch('faces',tria(tnum==3,1:3), ...
-        'vertices',vert, ...
-        'facecolor','w', ...
-        'edgecolor','m') ;
+        'edgecolor',[.1,.1,.1], ...
+        'linewidth',1.5) ;
     title(['MESH-OPT.: KIND=DELFRONT, |TRIA|=', ...
         num2str(size(tria,1))]) ;
     
@@ -459,7 +500,175 @@ function demo5
 end
 
 function demo6
-%DEMO6 explore impact of "hill-climbing" mesh optimisations.
+%DEMO6 build triangulations for geometries with internal co-
+%nstraints.
+
+    fprintf(1, [ ...
+' Both the REFINE2 and SMOOTH2 routines also support geometr- \n', ...
+' ies containing "internal" constraints. \n', ...
+        ] ) ;
+
+%---------------------------------------------- create geom.
+    node = [
+        -1., -1.; +1., -1.
+        +1., +1.; -1., +1.
+        +.0, +.0; +.2, +.7
+        +.6, +.2; +.4, +.8
+        +0., +.5; -.7, +.3
+        -.1, +.1; -.6, +.5
+        -.9, -.8; -.6, -.7
+        -.3, -.6; +.0, -.5
+        +.3, -.4; -.3, +.4
+        -.1, +.3
+        ] ;
+    edge = [
+         1 ,  2 ;  2 ,  3
+         3 ,  4 ;  4 ,  1
+         5 ,  6 ;  5 ,  7
+         5 ,  8 ;  5 ,  9
+         5 , 10 ;  5 , 11
+         5 , 12 ;  5 , 13
+         5 , 14 ;  5 , 15
+         5 , 16 ;  5 , 17
+         5 , 18 ;  5 , 19
+        ] ;
+   
+%-- the geometry must be split into its "exterior" and "int-
+%-- erior" components using the optional PART argument. Each
+%-- PART{I} specified should define the "exterior" boundary
+%-- of a polygonal region. "Interior" constraints should not
+%-- be referenced by any polygon in PART -- they are imposed
+%-- as isolated edge constraints. 
+    part{1} = [1,2,3,4] ;
+    
+%---------------------------------------------- do size-fun.
+    hmax = +0.175 ;
+ 
+%---------------------------------------------- do mesh-gen.
+    opts.kind = 'delaunay' ;
+   
+   [vert,etri, ...
+    tria,tnum] = refine2(node,edge,part,opts, ...
+                         hmax) ;
+                         
+%---------------------------------------------- do mesh-opt.
+   [vert,etri, ...
+    tria,tnum] = smooth2(vert,etri,tria,tnum) ;
+    
+    figure;
+    patch('faces',tria(:,1:3),'vertices',vert, ...
+        'facecolor','w', ...
+        'edgecolor',[.2,.2,.2]) ;
+    hold on; axis image off;
+    patch('faces',edge(:,1:2),'vertices',node, ...
+        'facecolor','w', ...
+        'edgecolor',[.1,.1,.1], ...
+        'linewidth',2.0) ;
+    title(['MESH-OPT.: KIND=DELAUNAY, |TRIA|=', ...
+        num2str(size(tria,1))]) ;
+    
+    drawscr(vert,etri,tria,tnum);
+           
+    drawnow;
+    
+    set(figure(1),'units','normalized', ...
+        'position',[.05,.50,.30,.35]) ;
+    set(figure(2),'units','normalized', ...
+        'position',[.05,.05,.30,.35]) ;
+        
+end
+
+function demo7
+%DEMO7 investigate the use of quadtree-type mesh refinement.
+
+    filename = mfilename('fullpath');
+    filepath = fileparts( filename );
+
+    meshfile = ...
+        [filepath,'/poly-data/wavy-channel.msh'];
+
+   [node,edge] = triread( meshfile );
+   
+    fprintf(1, [ ...
+' The TRIDIV2 routine can also be used to refine existing tr- \n', ...
+' angulations. Each triangle is split into four new sub-tria- \n', ...
+' ngles, such that element shape is preserved. Combining the  \n', ...
+' TRIDIV2 and SMOOTH2 routines allows for hierarchies of high \n', ...
+' quality triangulations to be generated. \n', ...
+        ] ) ;
+   
+%---------------------------------------------- do size-fun.
+   [vlfs,tlfs, ...
+    hlfs] = lfshfn2(node,edge) ;
+    
+   [slfs] = idxtri2(vlfs,tlfs) ;
+   
+    pmax = max(node,[],1);
+    pmin = min(node,[],1);
+   
+    hmax = mean(pmax-pmin)/+17 ;
+    hlfs = min(hmax,hlfs);   
+   
+%---------------------------------------------- do mesh-gen.
+    hfun = @trihfn2;
+   
+   [vert,etri, ...
+    tria,tnum] = refine2(node,edge,[],[],hfun , ...
+                    vlfs,tlfs,slfs,hlfs);
+        
+%---------------------------------------------- do mesh-opt.
+   [vert,etri, ...
+    tria,tnum] = smooth2(vert,etri,tria,tnum) ;
+    
+   [vnew,enew, ...
+    tnew,tnum] = tridiv2(vert,etri,tria,tnum) ;
+    
+   [vnew,enew, ...
+    tnew,tnum] = smooth2(vnew,enew,tnew,tnum) ;
+    
+    figure;
+    patch('faces',tria(:,1:3),'vertices',vert, ...
+        'facecolor','w', ...
+        'edgecolor',[.2,.2,.2]) ;
+    hold on; axis image off;
+    patch('faces',edge(:,1:2),'vertices',node, ...
+        'facecolor','w', ...
+        'edgecolor',[.1,.1,.1], ...
+        'linewidth',1.5) ;
+    title(['MESH-OPT.: KIND=DELFRONT, |TRIA|=', ...
+        num2str(size(tria,1))]) ;
+        
+    figure;
+    patch('faces',tnew(:,1:3),'vertices',vnew, ...
+        'facecolor','w', ...
+        'edgecolor',[.2,.2,.2]) ;
+    hold on; axis image off;
+    patch('faces',etri(:,1:2),'vertices',vert, ...
+        'facecolor','w', ...
+        'edgecolor',[.1,.1,.1], ...
+        'linewidth',1.5) ;
+    title(['MESH-OPT.: KIND=DELFRONT, |TRIA|=', ...
+        num2str(size(tnew,1))]) ;
+    
+    drawscr(vert,etri,tria,tnum);       
+    drawscr(vnew,enew,tnew,tnum);
+           
+    drawnow;
+    
+    set(figure(1),'units','normalized', ...
+        'position',[.05,.50,.30,.35]) ;
+    set(figure(2),'units','normalized', ...
+        'position',[.35,.50,.30,.35]) ;
+        
+    set(figure(3),'units','normalized', ...
+        'position',[.05,.05,.30,.35]) ;
+    set(figure(4),'units','normalized', ...
+        'position',[.35,.05,.30,.35]) ;
+    
+end
+
+function demo8
+%DEMO8 explore impact of "hill-climbing" mesh optimisations.
 
 %---------------------------------------------- create geom.
     node = [
@@ -492,7 +701,7 @@ function demo6
     node = [node; ncir];
     
 %---------------------------------------------- do mesh-gen.
-    hfun = @hfun6 ;
+    hfun = @hfun8 ;
    
    [vert,etri, ...
     tria,tnum] = refine2(node,edge,[],[],hfun);
@@ -502,16 +711,20 @@ function demo6
     tria,tnum] = smooth2(vert,etri,tria,tnum) ;
     
     figure;
-    patch('faces',tria(:,1:3),'vertices',vert , ...
+    patch('faces',tria(:,1:3),'vertices',vert, ...
         'facecolor','w', ...
-        'edgecolor','k') ;
+        'edgecolor',[.2,.2,.2]) ;
     hold on; axis image off;
+    patch('faces',edge(:,1:2),'vertices',node, ...
+        'facecolor','w', ...
+        'edgecolor',[.1,.1,.1], ...
+        'linewidth',1.5) ;
     title(['MESH-OPT.: KIND=DELFRONT, |TRIA|=', ...
         num2str(size(tria,1))]) ;
         
     figure;
     patch('faces',tria(:,1:3),'vertices',vert , ...
-        'facevertexcdata' , hfun6(vert), ...
+        'facevertexcdata' , hfun8(vert), ...
         'facecolor','interp', ...
         'edgecolor','none') ;
     hold on; axis image off;
@@ -530,8 +743,8 @@ function demo6
   
 end
 
-function [hfun] = hfun6(test)
-%HFUN5 user-defined mesh-size function for DEMO5.
+function [hfun] = hfun8(test)
+%HFUN8 user-defined mesh-size function for DEMO-8.
 
     hmax = +.05 ;
     hmin = +.01 ;
@@ -539,15 +752,15 @@ function [hfun] = hfun6(test)
     xmid = +0.0 ;
     ymid = +0.0 ;
     
-    hcir = exp( -1.*(test(:,1)-xmid).^2 ...
+    hcir = exp( -.5*(test(:,1)-xmid).^2 ...
                 -2.*(test(:,2)-ymid).^2 ) ;
 
     hfun = hmax - (hmax-hmin) * hcir  ;
 
 end
 
-function demo7
-%DEMO7 larger-scale problem, mesh refinement + optimisation.
+function demo9
+%DEMO9 larger-scale problem, mesh refinement + optimisation.
 
     filename = mfilename('fullpath');
     filepath = fileparts( filename );
@@ -575,10 +788,14 @@ function demo7
     tria,tnum] = smooth2(vert,etri,tria,tnum) ;
     
     figure;
-    patch('faces',tria(:,1:3),'vertices',vert , ...
+    patch('faces',tria(:,1:3),'vertices',vert, ...
         'facecolor','w', ...
-        'edgecolor','k') ;
+        'edgecolor',[.2,.2,.2]) ;
     hold on; axis image off;
+    patch('faces',edge(:,1:2),'vertices',node, ...
+        'facecolor','w', ...
+        'edgecolor',[.1,.1,.1], ...
+        'linewidth',1.5) ;
     title(['MESH-OPT.: KIND=DELFRONT, |TRIA|=', ...
         num2str(size(tria,1))]) ;
            
@@ -586,10 +803,15 @@ function demo7
            
     drawnow;
     
+    set(figure(1),'units','normalized', ...
+        'position',[.05,.50,.30,.35]) ;
+    set(figure(2),'units','normalized', ...
+        'position',[.05,.05,.30,.35]) ;
+    
 end
 
-function demo8
-%DEMO8 medium-scale problem, mesh refinement + optimisation.
+function demo10
+%DEMO10 medium-scale problem mesh refinement + optimisation.
 
     filename = mfilename('fullpath');
     filepath = fileparts( filename );
@@ -617,16 +839,25 @@ function demo8
     tria,tnum] = smooth2(vert,etri,tria,tnum) ;
     
     figure;
-    patch('faces',tria(:,1:3),'vertices',vert , ...
+    patch('faces',tria(:,1:3),'vertices',vert, ...
         'facecolor','w', ...
-        'edgecolor','k') ;
+        'edgecolor',[.2,.2,.2]) ;
     hold on; axis image off;
+    patch('faces',edge(:,1:2),'vertices',node, ...
+        'facecolor','w', ...
+        'edgecolor',[.1,.1,.1], ...
+        'linewidth',1.5) ;
     title(['MESH-OPT.: KIND=DELFRONT, |TRIA|=', ...
         num2str(size(tria,1))]) ;
            
     drawscr(vert,etri,tria,tnum);
            
     drawnow;
+    
+    set(figure(1),'units','normalized', ...
+        'position',[.05,.50,.30,.35]) ;
+    set(figure(2),'units','normalized', ...
+        'position',[.05,.05,.30,.35]) ;
     
 end
 
