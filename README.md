@@ -15,14 +15,16 @@ The `MESH2D` package has been around now for a while(!), having been first relea
 
 After downloading and unzipping the current <a href="https://github.com/dengwirda/mesh2d/archive/master.zip">repository</a>, navigate to the installation directory within <a href="http://www.mathworks.com">`MATLAB`</a> / <a href="https://www.gnu.org/software/octave">`OCTAVE`</a> and run the set of examples contained in `tridemo.m`:
 ````
-tridemo(1); % investigate the impact of the "radius-edge" threshold.
-tridemo(2); % Frontal-Delaunay vs. Delaunay-refinement refinement.
-tridemo(3); % explore impact of user-defined mesh-size constraints.
-tridemo(4); % explore impact of "hill-climbing" mesh optimisations.
-tridemo(5); % assemble triangulations for "multi-part" geometries.
-tridemo(6); % explore use of custom, user-defined mesh-size functions.
-tridemo(7); % larger-scale problem, mesh refinement + optimisation. 
-tridemo(8); % medium-scale problem, mesh refinement + optimisation. 
+tridemo( 1); % investigate the impact of the "radius-edge" threshold.
+tridemo( 2); % Frontal-Delaunay vs. Delaunay-refinement refinement.
+tridemo( 3); % explore impact of user-defined mesh-size constraints.
+tridemo( 4); % explore impact of "hill-climbing" mesh optimisations.
+tridemo( 5); % assemble triangulations for "multi-part" geometries.
+tridemo( 6); % assemble triangulations with "internal" constraints.
+tridemo( 7); % investigate the use of "quadtree"-type refinement.
+tridemo( 8); % explore use of custom, user-defined mesh-size functions.
+tridemo( 9); % larger-scale problem, mesh refinement + optimisation. 
+tridemo(10); % medium-scale problem, mesh refinement + optimisation. 
 ````
 # `Attribution!`
 
