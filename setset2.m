@@ -1,4 +1,4 @@
-function [same] = setset2(iset,jset)
+function [same,sloc] = setset2(iset,jset)
 %SETSET2 a (much) faster variant of ISMEMBER for edge lists.
 %   [IN] = SETSET2(ISET,JSET) returns an I-by-1 array IN,
 %   with IN(K) = TRUE if ISET(K,:) is present in JSET. This 
@@ -11,7 +11,7 @@ function [same] = setset2(iset,jset)
 
 %   Darren Engwirda : 2017 --
 %   Email           : engwirda@mit.edu
-%   Last updated    : 25/01/2017
+%   Last updated    : 29/01/2017
 
 %---------------------------------------------- basic checks
     if ( ~isnumeric(iset) || ~isnumeric(jset) )
@@ -30,20 +30,29 @@ function [same] = setset2(iset,jset)
     end
 
 %---------------------------------------------- set v1 <= v2
-    iset = sort(iset,2);
-    jset = sort(jset,2);    
+    iset = sort(iset,2) ;
+    jset = sort(jset,2) ;    
 
 %-- this is the slow, but easy-to-undertsand version of what
 %-- is happening here...  
   
-  % same = ismember(iset,jset,'rows');
+  % if (nargout == +1)
+  % same = ismember(iset,jset,'rows') ;
+  % else
+  % [same,sloc] = ...
+  %        ismember(iset,jset,'rows') ;
     
 %-- as above, the 'ROWS' based call to ISMEMBER can be sped
 %-- up by casting the edge lists (i.e. pairs of UINT32 valu-
 %-- es) to DOUBLE, and performing the sorted queries on vec-
 %-- tor inputs!
-    same = ismember( ...
-        iset*[2^31;1], jset*[2^31;1]);
+    if (nargout == +1)
+    same       = ismember( ...
+        iset*[2^31;1], jset*[2^31;1]) ;
+    else
+   [same,sloc] = ismember( ...
+        iset*[2^31;1], jset*[2^31;1]) ;
+    end
 
 end
 

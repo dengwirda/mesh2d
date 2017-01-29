@@ -68,7 +68,7 @@ function [vert,conn,tria,tnum] = refine2(varargin)
 %   such cases, HFUN must adopt a signature [HH] = HFUN(PP,
 %   A1,A2,...,AN). HFUN must return positive values.
 %
-%   See also SMOOTH2, DRAWSCR, TRIDEMO
+%   See also SMOOTH2, TRIDIV2, DRAWSCR, TRIDEMO
 
 %   This routine implements a "multi-refinement" variant of
 %   Delaunay-refinement type mesh-generation. Both standard
@@ -96,7 +96,7 @@ function [vert,conn,tria,tnum] = refine2(varargin)
 
 %   Darren Engwirda : 2017 --
 %   Email           : engwirda@mit.edu
-%   Last updated    : 27/01/2017
+%   Last updated    : 29/01/2017
     
     filename = mfilename('fullpath') ;
     filepath = fileparts( filename ) ;
@@ -159,6 +159,37 @@ function [vert,conn,tria,tnum] = refine2(varargin)
             'Invalid PART input array.') ;
     end
 
+%-------------------------------- prune any non-unique topo. 
+   [PSLG,ivec,jvec] = ...
+        unique(sort(PSLG,+2),'rows') ;
+
+    for ppos = +1:length(part)
+    
+        if ( ~isnumeric(part{ppos}) )
+            error (  ...
+            'refine2:incorrectInputClass', ...
+                'Incorrect input class. ') ;
+        end
+    
+        part{ppos} = ...
+            unique(jvec(part{ppos})) ;
+    
+    end
+
+%-------------------------------- check part "manifold-ness"
+    for ppos = +1:length(part)
+
+        eloc = PSLG(part{ppos},:) ;       
+        nadj = ...
+            accumarray(eloc(:),1) ;
+ 
+        if ( mod(nadj,+2) ~= +0 )
+        error('refine2:nonmanifoldInputs', ...
+            'Non-manifold PART detected.') ;
+        end
+    
+    end
+
 %---------------------------------------------- output title
     if (~isinf(opts.disp))
         fprintf(1,'\n') ;
@@ -187,11 +218,11 @@ function [vert,conn,tria,tnum] = refine2(varargin)
             vmax(1), vmax(2)
             vmin(1), vmax(2)
            ] ;
-    vert = [vert; vbox] ;
+    vert = [vert ; vbox] ;
 
-%-------------------------------- PASS 0: protect 0-features
+%-------------------------------- PASS 0: shield sharp feat.
    [vert,conn,tria,tnum,iter] = ...
-        balref0(vert,conn,tria,tnum, ...
+        cdtbal0(vert,conn,tria,tnum, ...
             node,PSLG,part,opts,hfun,harg,iter);
 
 %-------------------------------- PASS 1: refine 1-simplexes
@@ -204,7 +235,7 @@ function [vert,conn,tria,tnum] = refine2(varargin)
         cdtref2(vert,conn,tria,tnum, ...
             node,PSLG,part,opts,hfun,harg,iter);
     
-%-------------------------------- trim extra adjacency info.  
+%-------------------------------- trim extra adjacency info.
     tria = tria(:,1:3) ;
     
     if (~isinf(opts.disp)), fprintf(1,'\n'); end
@@ -212,15 +243,17 @@ function [vert,conn,tria,tnum] = refine2(varargin)
 end
 
 function [vert,conn,tria,tnum,iter] = ...
-            balref0(vert,conn,tria,tnum, ...
+            cdtbal0(vert,conn,tria,tnum, ...
                 node,PSLG,part,opts,hfun,harg,iter)
-%BALREF0 constrained Delaunay-refinement for "sharp" 0-dim.
+%CDTBAL0 constrained Delaunay-refinement for "sharp" 0-dim.
 %features at PSLG vertices.
-%   [...] = BALREF0(...) refines the set of 1-simplex eleme-
+%   [...] = CDTBAL0(...) refines the set of 1-simplex eleme-
 %   nts incident to "sharp" features in the PSLG. Specifica-
 %   lly, edges that subtend "small" angles are split about a
 %   set of new "collar" vertices, equi-distributed about the
-%   centre of "sharp" features.   
+%   centre of "sharp" features. Collar size is computed as a
+%   min. of the incident edge-len. and local mesh-size cons-
+%   traints.
 
     if (iter <= opts.iter)
 
@@ -916,7 +949,7 @@ function [vert,conn,tria,tnum,iter] = ...
     %-- few issues that occur when |FTRI| is small. Specifi-
     %-- cally, it ensures that the proximity/encroachment
     %-- filters below can't zip the insertions away to zero!
-
+    
         keep = ftri | vtri;
              
     %------------------------------------- do offcentre pt's
@@ -953,7 +986,10 @@ function [vert,conn,tria,tnum,iter] = ...
 
         new2 = new2(keep,:);
        
-    %------------------------------------- find encroachment
+    %------------------------------------- test encroachment
+        bal1(:,3) = ...
+            (1.-eps^.75) * bal1(:,3);
+    
        [vp,vi] = ...
           findball(bal1,new2(:,1:2));
         
