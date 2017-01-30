@@ -27,7 +27,7 @@ function [vert,conn,tria,tnum] = ...
 
 %   Darren Engwirda : 2017 --
 %   Email           : engwirda@mit.edu
-%   Last updated    : 22/01/2017
+%   Last updated    : 30/01/2017
 
 %---------------------------------------------- basic checks    
     if (~isnumeric(vert) || ~isnumeric(conn) || ...
@@ -86,9 +86,9 @@ function [vert,conn,tria,tnum] = ...
     conn = dtri.Constraints;
     tria = dtri.ConnectivityList;
     else
-    if (exist('delaunayTri','class') )
+    if (exist('DelaunayTri','class') )
 %------------------------------------ use class if available
-    dtri = delaunayTri   (vert,conn) ;
+    dtri = DelaunayTri   (vert,conn) ;
     vert = dtri.X;
     conn = dtri.Constraints;
     tria = dtri.Triangulation;
@@ -97,7 +97,7 @@ function [vert,conn,tria,tnum] = ...
     'Delaunay triangulation is not supported');
     end
     end
-
+    
 %------------------------------------ calc. "inside" status!    
     tnum = zeros(size(tria,+1),+1) ;
     
@@ -105,7 +105,7 @@ function [vert,conn,tria,tnum] = ...
          + vert(tria(:,2),:) ...
          + vert(tria(:,3),:) ;
     tmid = tmid / +3.0;
-    
+
     for ppos = 1 : length(part)
 
        [stat] = inpoly2( ...
@@ -113,8 +113,8 @@ function [vert,conn,tria,tnum] = ...
  
         tnum(stat) = ppos ;
         
-    end    
-
+    end
+    
 %------------------------------------ keep "interior" tria's  
     tria = tria(tnum>+0,:);
     tnum = tnum(tnum>+0,:);

@@ -18,7 +18,7 @@ function [hval] = trihfn2(test,vert,tria,tree,hfun)
 
 %   Darren Engwirda : 2017 --
 %   Email           : engwirda@mit.edu
-%   Last updated    : 21/01/2017
+%   Last updated    : 30/01/2017
 
 %---------------------------------------------- basic checks    
     if ( ~isnumeric(test) || ...
@@ -71,6 +71,8 @@ function [hval] = trihfn2(test,vert,tria,tree,hfun)
 %-------------------------------------- calc. linear interp.    
     hval = max(hfun) * ones(size(test,1),1) ;
 
+    if (any(in))
+
     d1 = test(in,:) - vert(tria(ti,1),:);
     d2 = test(in,:) - vert(tria(ti,2),:);
     d3 = test(in,:) - vert(tria(ti,3),:);
@@ -85,7 +87,10 @@ function [hval] = trihfn2(test,vert,tria,tree,hfun)
     hval(in) = a1.*hfun(tria(ti,1)) ...
              + a2.*hfun(tria(ti,2)) ...
              + a3.*hfun(tria(ti,3)) ;
+    
     hval(in) = hval(in)./(a1+a2+a3) ;
+
+    end
 
 end
 
