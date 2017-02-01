@@ -44,7 +44,7 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
 
 %   Darren Engwirda : 2017 --
 %   Email           : engwirda@mit.edu
-%   Last updated    : 26/01/2017
+%   Last updated    : 01/02/2017
     
     filename = mfilename('fullpath');
     filepath = fileparts( filename );
@@ -88,6 +88,7 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
         error('smooth2:incorrectDimensions' , ...
             'Incorrect input dimensions.');
     end
+    
     if (size(vert,2)~= +2 || ...
         size(conn,2)~= +2 || ...
         size(tria,2)~= +3 || ...
@@ -145,10 +146,24 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
     end
 
 %---------------------------------------------- DO MESH ITER
+    tcpu.full = +0. ;
+    tcpu.dtri = +0. ;
+    tcpu.tcon = +0. ;
+    tcpu.hfun = +0. ;
+    tcpu.iter = +0. ;
+    tcpu.undo = +0. ;
+
+    tnow =  tic ;
+     
     for iter = +1 : opts.iter
 
     %------------------------------------------ inflate adj.
+        ttic = tic ;
+       
        [edge,tria] = tricon2(tria,conn);
+
+        tcpu.tcon = ...
+            tcpu.tcon + toc(ttic) ;
 
     %------------------------------------------ vertex |deg|
         vadj = zeros(size(vert,1),1) ;
@@ -166,6 +181,8 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
         free = (vadj == 0) ; 
        
     %------------------------------------------ compute HFUN 
+        ttic = tic ;
+        
         if (~isempty (hfun))
             if (isnumeric(hfun))
                 hvrt = hfun * ...
@@ -213,11 +230,16 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
         
         hmid =(hvrt(edge(:,1),:) ...
              + hvrt(edge(:,2),:)) * 0.50 ;
+             
+        tcpu.hfun = ...
+            tcpu.hfun + toc(ttic) ;
         
     %------------------------------------------ compute scr.
         oscr = triscr2(vert,tria) ;
         
     %------------------------------------------ vert. iter's
+        ttic =  tic ;
+        
         vold = vert ;
         for isub = +1 : max(+2,min(+8,iter))
             
@@ -264,40 +286,50 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
             vert = vnew ;
     
         end
+ 
+        tcpu.iter = ...
+            tcpu.iter + toc(ttic) ;
     
     %------------------------------------------ hill-climber
+        ttic = tic ;
+        
+    %-- find worst tria adj. to each vert.
+        lscr = ones(size(vert,1),1) ;
+        ilow = ones(size(vert,1),1) ;
+        for tpos = 1 : size(tria,1)
+
+        ivrt = tria(tpos,1) ;
+        jvrt = tria(tpos,2) ;
+        kvrt = tria(tpos,3) ;
+        
+        if (lscr(ivrt) > oscr(tpos))
+            ilow(ivrt) = tpos;
+            lscr(ivrt) = oscr(tpos);
+        end
+        if (lscr(jvrt) > oscr(tpos))
+            ilow(jvrt) = tpos;
+            lscr(jvrt) = oscr(tpos);
+        end
+        if (lscr(kvrt) > oscr(tpos))
+            ilow(kvrt) = tpos;
+            lscr(kvrt) = oscr(tpos);
+        end
+        
+        end
+        tlow = false(size(tria,1),1) ;
+        tlow(ilow(ilow > +0)) = true ;
+        
+    %-- unwind vert. upadte if score lower
+        nscr = ones(size(tria,1),1);
+        btri = true(size(tria,1),1);
+        
         for undo = +1 : size(vert,+1)
         
-            nscr = triscr2(vert,tria) ;
-        
-        %-- find worst tria for each vert.
-            lscr = ones(size(vert,1),1) ;
-            ilow = ones(size(vert,1),1) ;
-            for tpos = 1 : size(tria,1)
-
-            ivrt = tria(tpos,1) ;
-            jvrt = tria(tpos,2) ;
-            kvrt = tria(tpos,3) ;
-            
-            if (lscr(ivrt) > nscr(tpos))
-                ilow(ivrt) = tpos;
-                lscr(ivrt) = nscr(tpos);
-            end
-            if (lscr(jvrt) > nscr(tpos))
-                ilow(jvrt) = tpos;
-                lscr(jvrt) = nscr(tpos);
-            end
-            if (lscr(kvrt) > nscr(tpos))
-                ilow(kvrt) = tpos;
-                lscr(kvrt) = nscr(tpos);
-            end
-            
-            end
-            tlow = false(size(tria,1),1);
-            tlow(ilow(ilow > 0)) = true ;
+            nscr(btri) = triscr2( ...
+                vert,tria(btri,:)) ;
       
         %-- TRUE if tria needs "unwinding" 
-            stol = +.75 ;   
+            stol = +.75 ;
             btri = nscr <= stol ...
                  & nscr <  oscr ...
                  & tlow ;
@@ -305,8 +337,11 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
             if (~any(btri)), break; end
              
         %-- relax toward old vert. coord's
-            bvrt = ...
+            ivrt = ...
               unique(tria(btri,1:3));
+            
+            bvrt = false(size(vert,1),1);
+            bvrt(ivrt) = true;
             
             bnew =  +.67 ^ undo ;
             bold =  +1.0 - bnew ;
@@ -314,8 +349,14 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
             vert(bvrt,:) = ...
                 bold * vold(bvrt,:) ... 
               + bnew * vert(bvrt,:) ;
+      
+            btri = ...
+                any(bvrt(tria(:,1:3)),2);
         
         end
+    
+        tcpu.undo = ...
+            tcpu.undo + toc(ttic) ;
     
     %------------------------------------- test convergence!
         vdel = sqrt(sum((vert-vold).^2, 2)) ;
@@ -327,8 +368,13 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
   
   
     %------------------------------------- build current CDT
+        ttic = tic ;
+       
        [vert,conn,tria,tnum] = ...
           deltri2(vert,conn,node,PSLG,part) ;
+          
+        tcpu.dtri = ...
+            tcpu.dtri + toc(ttic) ;
         
     %------------------------------------- dump-out progess!
         if (mod(iter,opts.disp)==+0)
@@ -348,7 +394,30 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
         
     end
 
-    tria = tria(:,1:3) ;
+    tria = tria(:, 1:3) ;
+    
+    tcpu.full = ...
+        tcpu.full + toc(tnow) ;
+
+    if (opts.dbug)
+    %------------------------------------- print debug timer 
+        fprintf(1,'\n') ;
+        fprintf(1,' Mesh smoothing timer...\n');
+        fprintf(1,'\n') ;
+        fprintf(1, ...
+        ' FULL: %f \n', tcpu.full);
+        fprintf(1, ...
+        ' DTRI: %f \n', tcpu.dtri);
+        fprintf(1, ...
+        ' TCON: %f \n', tcpu.tcon);
+        fprintf(1, ...
+        ' HFUN: %f \n', tcpu.hfun);
+        fprintf(1, ...
+        ' ITER: %f \n', tcpu.iter);
+        fprintf(1, ...
+        ' UNDO: %f \n', tcpu.undo);   
+        fprintf(1,'\n') ;
+    end
     
     if (~isinf(opts.disp)), fprintf(1,'\n'); end
 
@@ -405,6 +474,19 @@ function [opts] = makeopt(opts)
     if (opts.vtol <= 0.)
         error('smooth2:invalidOptionValues', ...
             'Invalid OPT.VTOL selection.') ;
+    end
+    end
+    
+    if (~isfield(opts,'dbug'))
+        opts.dbug = false;
+    else
+    if (~islogical(opts.dbug))
+        error('refine2:incorrectInputClass', ...
+            'Incorrect input class.');
+    end
+    if (numel(opts.dbug)~= +1)
+        error('refine2:incorrectDimensions', ...
+            'Incorrect input dimensions.') ;    
     end
     end
     
