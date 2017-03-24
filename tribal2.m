@@ -7,7 +7,7 @@ function [bb] = tribal2(pp,tt)
 
 %   Darren Engwirda : 2017 --
 %   Email           : engwirda@mit.edu
-%   Last updated    : 14/01/2017
+%   Last updated    : 02/02/2017
 
 %---------------------------------------------- basic checks    
     if (~isnumeric(pp) || ...
@@ -25,25 +25,27 @@ function [bb] = tribal2(pp,tt)
             'Incorrect input dimensions.');
     end
 
-    bb = zeros(size(tt,1),3);
-    rv = zeros(size(tt,1),2);
-    
-%------------------------------------------------ tria edges
-    ab = pp(tt(:,2),:)-pp(tt(:,1),:);
-    ac = pp(tt(:,3),:)-pp(tt(:,1),:);
-    
 %------------------------------------------------ lhs matrix     
-    aa = zeros(2,2,size(tt,1));
-    aa(1,:,:) = +2.*ab';
-    aa(2,:,:) = +2.*ac';
-    
-%------------------------------------------------ rhs vector
-    rv(:,1) = sum(ab.*ab,2);
-    rv(:,2) = sum(ac.*ac,2);
-    rv = rv';
+    ab = pp(tt(:,2),:)-pp(tt(:,1),:) ;
+    ac = pp(tt(:,3),:)-pp(tt(:,1),:) ;
+   
+%------------------------------------------------ rhs vector    
+    rv11 = sum(ab.*ab,2) ;
+    rv22 = sum(ac.*ac,2) ;
     
 %------------------------------------------------ solve sys.
-    bb(:,1:2) = blocksolve(aa,rv)';
+    dd      = ab(:,1) .* ac(:,2) - ...
+              ab(:,2) .* ac(:,1) ;
+              
+    bb = zeros(size(tt,1),3) ;
+    bb(:,1) = (ac(:,2) .* rv11 - ...
+               ab(:,2) .* rv22 ) ...
+            ./ dd * +.5 ;
+            
+    bb(:,2) = (ab(:,1) .* rv22 - ...
+               ac(:,1) .* rv11 ) ...
+            ./ dd * +.5 ;
+      
     bb(:,3) = sum(bb(:,1:2).^2,2) ;
     bb(:,1:2) = ...
         pp(tt(:,1),:) + bb(:,1:2) ;
