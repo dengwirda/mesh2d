@@ -207,8 +207,8 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
                 ivrt = edge(epos,1);
                 jvrt = edge(epos,2);
      
-                wcur = +1./elen(epos) ;
-               %wcur = +1. ;
+               %wcur = +1./elen(epos) ;
+                wcur = +1. ;
                 
                 hvrt(ivrt) = ...
                 hvrt(ivrt) + ...
@@ -249,8 +249,8 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
     
         %-- calc. relative edge extensions        
             scal = +1. - elen./hmid;
-            scal = min (+0.5, scal);
-            scal = max (-0.5, scal);
+            scal = min (+1.0, scal);
+            scal = max (-1.0, scal);
             
         %-- projected points from each end
             ipos = vert(edge(:,1),:) ...
@@ -259,24 +259,30 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
                  + 1.*[scal,scal].*evec;
             
         %-- sum contributions edge-to-vert
-            vnew = vert ;
+            vdeg = ones(size(vert,1),1);
+            vdeg = vdeg * eps^.8;
+            vnew = vert * eps^.8;
             for epos = +1 : size(edge,1)
             
                 ivrt = edge(epos,1);
                 jvrt = edge(epos,2);
             
+                vdeg(ivrt) = vdeg(ivrt)+1;
+                
                 vnew(ivrt,1) = ...
                 vnew(ivrt,1)+ipos(epos,1);
                 vnew(ivrt,2) = ...
                 vnew(ivrt,2)+ipos(epos,2);
                 
+                vdeg(jvrt) = vdeg(jvrt)+1;
+            
                 vnew(jvrt,1) = ...
                 vnew(jvrt,1)+jpos(epos,1);
                 vnew(jvrt,2) = ...
                 vnew(jvrt,2)+jpos(epos,2);
             
             end
-            vnew = vnew./[vadj+1,vadj+1] ;
+            vnew = vnew ./ [vdeg,vdeg];
             
         %-- fixed points. edge projection?
             vnew(conn(:),1:2) = ...
@@ -329,7 +335,7 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
                 vert,tria(btri,:)) ;
       
         %-- TRUE if tria needs "unwinding" 
-            stol = +.75 ;
+            stol = +.80 ;
             btri = nscr <= stol ...
                  & nscr <  oscr ...
                  & tlow ;
@@ -343,7 +349,7 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
             bvrt = false(size(vert,1),1);
             bvrt(ivrt) = true;
             
-            bnew =  +.67 ^ undo ;
+            bnew =  +.80 ^ undo ;
             bold =  +1.0 - bnew ;
             
             vert(bvrt,:) = ...

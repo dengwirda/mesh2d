@@ -1,4 +1,4 @@
-function [bb] = cdtbal2(pp,ee)
+function [bb] = cdtbal1(pp,ee)
 %CDTBAL1 compute the circumballs associated with a 1-simplex
 %triangulation embedded in R^2.
 %   [BB] = TRIBAL1(PP,EE) returns the circumscribing balls
@@ -7,7 +7,7 @@ function [bb] = cdtbal2(pp,ee)
 
 %   Darren Engwirda : 2017 --
 %   Email           : engwirda@mit.edu
-%   Last updated    : 05/01/2016
+%   Last updated    : 24/03/2017
 
 %---------------------------------------------- basic checks    
     if (~isnumeric(pp) || ...
@@ -27,9 +27,9 @@ function [bb] = cdtbal2(pp,ee)
 
     bb = zeros(size(ee,1),3);
     
-    bb(:,1:2) = (pp(ee(:,1),:)+pp(ee(:,2),:)) * .50 ;
+    bb(:,1:2) = (pp(ee(:,1),:)+pp(ee(:,2),:))*.50 ;
     bb(:,  3) = ...
-      sum((pp(ee(:,1),:)-pp(ee(:,2),:)).^2,2) * .25 ;
+      sum((pp(ee(:,1),:)-pp(ee(:,2),:)).^2,2)*.25 ;
     
 end
 

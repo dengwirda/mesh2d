@@ -43,7 +43,7 @@ function [stat] = inpoly2(varargin)
 
 %   Darren Engwirda : 2017 --
 %   Email           : engwirda@mit.edu
-%   Last updated    : 16/01/2017
+%   Last updated    : 24/03/2017
 
 %---------------------------------------------- extract args
     node = []; edge = []; vert = [];
@@ -135,7 +135,7 @@ function [stat] = inpoly2(varargin)
         end
 
     %------------------------------- find VERT(IPOS,2)<=YONE
-       [ipos] = lsearch(yvec,yone);
+       [ipos] = find_up(yvec, yone) ;
 
     %------------------------------- calc. edge-intersection
         for jpos = ipos+1 : nvrt

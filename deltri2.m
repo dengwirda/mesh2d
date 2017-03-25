@@ -1,5 +1,5 @@
 function [vert,conn,tria,tnum] = ...
-          deltri2(vert,conn,node,PSLG,part)
+          deltri2(vert,conn,node,PSLG,part,kind)
 %DELTRI2 compute a constrained 2-simplex Delaunay triangula-
 %tion in the two-dimensional plane.
 %   [VERT,CONN,TRIA,TNUM]=DELTRI2(VERT,CONN,NODE,PSLG,PART)
@@ -27,12 +27,14 @@ function [vert,conn,tria,tnum] = ...
 
 %   Darren Engwirda : 2017 --
 %   Email           : engwirda@mit.edu
-%   Last updated    : 30/01/2017
+%   Last updated    : 24/03/2017
+
+    if (nargin<6), kind = 'constrained'; end
 
 %---------------------------------------------- basic checks    
     if (~isnumeric(vert) || ~isnumeric(conn) || ...
         ~isnumeric(node) || ~isnumeric(PSLG) || ...
-            ~iscell(part) )
+        ~iscell   (part) || ~ischar   (kind) )
         error('deltri2:incorrectInputClass' , ...
             'Incorrect input class.') ;
     end
@@ -77,27 +79,44 @@ function [vert,conn,tria,tnum] = ...
             'Invalid PART input array.') ;
     end
 
-    if (exist( ...
-    'delaunayTriangulation','class') )
-%------------------------------------ use class if available    
-    dtri = ...
-    delaunayTriangulation(vert,conn) ;
-    vert = dtri.Points;
-    conn = dtri.Constraints;
-    tria = dtri.ConnectivityList;
-    else
-    if (exist('DelaunayTri','class') )
-%------------------------------------ use class if available
-    dtri = DelaunayTri   (vert,conn) ;
-    vert = dtri.X;
-    conn = dtri.Constraints;
-    tria = dtri.Triangulation;
-    else
-    error('deltri2:unsupportedMATLAB', ...
-    'Delaunay triangulation is not supported');
-    end
-    end
+
+    switch (lower(kind))
+    case 'constrained'
+
+        if (exist( ...
+        'delaunayTriangulation') == +2 )
+    %-------------------------------- use class if available    
+        dtri = ...
+        delaunayTriangulation(vert,conn) ;
+        vert = dtri.Points;
+        conn = dtri.Constraints;
+        tria = dtri.ConnectivityList;
+        else
+        if (exist('DelaunayTri') == +2 )
+    %-------------------------------- use class if available
+        dtri = DelaunayTri   (vert,conn) ;
+        vert = dtri.X;
+        conn = dtri.Constraints;
+        tria = dtri.Triangulation;
+        else
+    %-------------------------------- *fall-back* onto qhull
+       [vert,conn,tria] ...
+                = cfmtri2(vert,conn) ;
+        end
+        end
     
+    case 'conforming'   
+        
+    %-------------------------------- "conforming" delaunay!
+       [vert,conn,tria] ...
+                = cfmtri2(vert,conn) ;
+        
+    otherwise
+        error('deltri2:invalidInputs', ...
+            'Invalid KIND selection.') ;
+    
+    end
+   
 %------------------------------------ calc. "inside" status!    
     tnum = zeros(size(tria,+1),+1) ;
     
@@ -109,15 +128,22 @@ function [vert,conn,tria,tnum] = ...
     for ppos = 1 : length(part)
 
        [stat] = inpoly2( ...
-        tmid,node,PSLG(part{ppos},:)) ;
+            tmid,node  , ...
+            PSLG(part{ppos},:))  ;
  
-        tnum(stat) = ppos ;
+        tnum(stat)  = ppos ;
         
     end
     
 %------------------------------------ keep "interior" tria's  
-    tria = tria(tnum>+0,:);
-    tnum = tnum(tnum>+0,:);
+    tria = tria(tnum>+0,:) ;
+    tnum = tnum(tnum>+0,:) ;
+    
+%------------------------------------ flip for correct signs    
+    area = triarea(vert,tria) ;
+
+    tria(area<0.,:) = ...
+        tria(area<0.,[1,3,2]) ;
 
 end
 
