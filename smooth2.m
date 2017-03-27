@@ -44,7 +44,7 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
 
 %   Darren Engwirda : 2017 --
 %   Email           : engwirda@mit.edu
-%   Last updated    : 01/02/2017
+%   Last updated    : 26/03/2017
     
     filename = mfilename('fullpath');
     filepath = fileparts( filename );
@@ -166,73 +166,19 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
             tcpu.tcon + toc(ttic) ;
 
     %------------------------------------------ vertex |deg|
-        vadj = zeros(size(vert,1),1) ;
+        vdeg = zeros(size(vert,1),1) ;
         for epos = +1 : size(edge,1)
             
             ivrt = edge(epos,1);
             jvrt = edge(epos,2);
  
-            vadj(ivrt) = ...
-                vadj(ivrt) + 1 ;
-            vadj(jvrt) = ...
-                vadj(jvrt) + 1 ;
+            vdeg(ivrt) = ...
+                vdeg(ivrt) + 1 ;
+            vdeg(jvrt) = ...
+                vdeg(jvrt) + 1 ;
     
         end
-        free = (vadj == 0) ; 
-       
-    %------------------------------------------ compute HFUN 
-        ttic = tic ;
-        
-        if (~isempty (hfun))
-            if (isnumeric(hfun))
-                hvrt = hfun * ...
-                  ones(size(vert,1),1) ;
-            else
-                hvrt = feval( ...
-                    hfun,vert,harg{:}) ;
-            end
-        else
-        
-    %-- if no HFUN, HFUN is "weighted" edge-len. at vertices
-        
-            hvrt = zeros(size(vert,1),1) ;
-            wval = zeros(size(vert,1),1) ;
-        
-            evec = vert(edge(:,2),:) - ...
-                   vert(edge(:,1),:) ;
-            elen = sqrt(sum(evec.^2,2));
-            
-            for epos = +1 : size(edge,1)
-                
-                ivrt = edge(epos,1);
-                jvrt = edge(epos,2);
-     
-               %wcur = +1./elen(epos) ;
-                wcur = +1. ;
-                
-                hvrt(ivrt) = ...
-                hvrt(ivrt) + ...
-                    wcur * elen(epos) ;
-                hvrt(jvrt) = ...
-                hvrt(jvrt) + ...
-                    wcur * elen(epos) ;
-                
-                wval(ivrt) = ...
-                wval(ivrt) + wcur;
-                wval(jvrt) = ...
-                wval(jvrt) + wcur;
-                    
-            end
-            hvrt = hvrt ./ max(eps,wval) ;
-            hvrt(free) =  +inf ;
-            
-        end
-        
-        hmid =(hvrt(edge(:,1),:) ...
-             + hvrt(edge(:,2),:)) * 0.50 ;
-             
-        tcpu.hfun = ...
-            tcpu.hfun + toc(ttic) ;
+        free = (vdeg == 0) ; 
         
     %------------------------------------------ compute scr.
         oscr = triscr2(vert,tria) ;
@@ -242,47 +188,65 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
         
         vold = vert ;
         for isub = +1 : max(+2,min(+8,iter))
-            
-            evec = vert(edge(:,2),:) - ...
-                   vert(edge(:,1),:) ;
-            elen = sqrt(sum(evec.^2,2));
     
+        %-- compute HFUN at vert/midpoints
+            hvrt = evalhfn( ...
+                vert,edge,hfun,harg) ;
+                
+            hmid = hvrt(edge(:,1),:) ...
+                 + hvrt(edge(:,2),:) ;
+            hmid = hmid * +.5 ;
+            
         %-- calc. relative edge extensions        
+            evec = vert(edge(:,2),:) ...
+                 - vert(edge(:,1),:) ;
+            elen = sqrt(sum(evec.^2,2));
+            
             scal = +1. - elen./hmid;
             scal = min (+1.0, scal);
             scal = max (-1.0, scal);
             
         %-- projected points from each end
             ipos = vert(edge(:,1),:) ...
-                 - 1.*[scal,scal].*evec;
+                 -.67*[scal,scal].*evec;
             jpos = vert(edge(:,2),:) ...
-                 + 1.*[scal,scal].*evec;
+                 +.67*[scal,scal].*evec;
+            
+            scal = abs(scal);
             
         %-- sum contributions edge-to-vert
-            vdeg = ones(size(vert,1),1);
-            vdeg = vdeg * eps^.8;
+            vsum = zeros(size(vert,1),1) ;
+            vsum = vsum + eps^.8;
             vnew = vert * eps^.8;
             for epos = +1 : size(edge,1)
             
                 ivrt = edge(epos,1);
                 jvrt = edge(epos,2);
-            
-                vdeg(ivrt) = vdeg(ivrt)+1;
-                
+
+                wval = scal(epos,1);
+               %wval = +1. ;
+
+                vsum(ivrt,1) = ...
+                vsum(ivrt,1) + wval;
+                vsum(jvrt,1) = ...
+                vsum(jvrt,1) + wval;
+
                 vnew(ivrt,1) = ...
-                vnew(ivrt,1)+ipos(epos,1);
+                vnew(ivrt,1) + ...
+                    wval * ipos(epos,1);
                 vnew(ivrt,2) = ...
-                vnew(ivrt,2)+ipos(epos,2);
-                
-                vdeg(jvrt) = vdeg(jvrt)+1;
+                vnew(ivrt,2) + ...
+                    wval * ipos(epos,2);
             
                 vnew(jvrt,1) = ...
-                vnew(jvrt,1)+jpos(epos,1);
+                vnew(jvrt,1) + ...
+                    wval * jpos(epos,1);
                 vnew(jvrt,2) = ...
-                vnew(jvrt,2)+jpos(epos,2);
+                vnew(jvrt,2) + ...
+                    wval * jpos(epos,2);
             
             end
-            vnew = vnew ./ [vdeg,vdeg];
+            vnew = vnew ./ [vsum, vsum];
             
         %-- fixed points. edge projection?
             vnew(conn(:),1:2) = ...
@@ -300,9 +264,9 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
         ttic = tic ;
         
     %-- find worst tria adj. to each vert.
-        lscr = ones(size(vert,1),1) ;
-        ilow = ones(size(vert,1),1) ;
-        for tpos = 1 : size(tria,1)
+        lscr = ones (size(vert,1),1) ;
+        ilow = zeros(size(vert,1),1) ;
+        for tpos = +1 : size(tria,1)
 
         ivrt = tria(tpos,1) ;
         jvrt = tria(tpos,2) ;
@@ -371,7 +335,22 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
         % todo!!
         % delete small edges
         % refine large edges
-  
+   
+        
+    %------------------------------------- |deg|-based prune
+        keep = false(size(vert,1),1);
+        keep(vdeg>+4) = true;
+        keep(conn(:)) = true;
+        keep(free(:)) = true;
+        
+    %------------------------------------- reindex vert/conn 
+        redo = zeros(size(vert,1),1);
+        redo(keep) = +1;
+        redo = cumsum(redo);
+        conn = redo  (conn);
+        
+        vert = vert(keep,:);
+
   
     %------------------------------------- build current CDT
         ttic = tic ;
@@ -426,6 +405,61 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
     end
     
     if (~isinf(opts.disp)), fprintf(1,'\n'); end
+
+end
+
+function [hvrt] = evalhfn(vert,edge,hfun,harg)
+%EVALHFN eval. the spacing-fun. at mesh vertices.
+
+    if (~isempty (hfun))
+        if (isnumeric(hfun))
+            hvrt = hfun * ...
+              ones(size(vert,1),1) ;
+        else
+            hvrt = feval( ...
+                hfun,vert,harg{:}) ;
+        end
+    else
+    
+%-- if no HFUN, HFUN is "weighted" edge-len. at vertices
+    
+        hvrt = zeros(size(vert,1),1) ;
+        wval = zeros(size(vert,1),1) ;
+    
+        evec = vert(edge(:,2),:) - ...
+               vert(edge(:,1),:) ;
+        elen = sqrt(sum(evec.^2,2));
+        
+        for epos = +1 : size(edge,1)
+            
+            ivrt = edge(epos,1);
+            jvrt = edge(epos,2);
+ 
+           %wcur = +1./elen(epos) ;
+            wcur = +1. ;
+            
+            hvrt(ivrt) = ...
+            hvrt(ivrt) + ...
+                wcur * elen(epos) ;
+            hvrt(jvrt) = ...
+            hvrt(jvrt) + ...
+                wcur * elen(epos) ;
+            
+            wval(ivrt) = ...
+            wval(ivrt) + wcur;
+            wval(jvrt) = ...
+            wval(jvrt) + wcur;
+                
+        end
+        hvrt = hvrt ./ max(eps,wval) ;
+        
+        free = true (size(vert,1),1) ;
+        free(edge(:,1)) = false;
+        free(edge(:,2)) = false;
+        
+        hvrt(free)      =  +inf;
+        
+    end
 
 end
 
