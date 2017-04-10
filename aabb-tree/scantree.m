@@ -22,17 +22,19 @@ function [tm,im] = scantree(tr,pi,fn)
 %   Specifically, nodes in the list IM.LL{JJ} intersect with
 %   the item IM.II(JJ).
 %
-%   See also PUSHVERT, MAKETREE
+%   See also QUERYSET, MAPVERT, MAPRECT, MAKETREE
 
 %   Darren Engwirda : 2014 --
 %   Email           : engwirda@mit.edu
-%   Last updated    : 20/12/2014
+%   Last updated    : 06/04/2017
 
-    tm.ii = []; tm.ll = {};
-    im.ii = []; im.ll = {};
+    tm.ii = [] ; tm.ll = {} ;
+    im.ii = [] ; im.ll = {} ;
+    
 %------------------------------ quick return on empty inputs
     if (isempty(pi)), return; end
-    if (isempty(tr)), return; end   
+    if (isempty(tr)), return; end  
+     
 %---------------------------------------------- basic checks    
     if (~isa(tr, 'struct') || ...
         ~isa(pi,'numeric') || ...
@@ -41,9 +43,9 @@ function [tm,im] = scantree(tr,pi,fn)
             'Invalid input class.') ;
     end
 %---------------------------------------------- basic checks
-    if (~isfield(tr,'xx') || ...
-        ~isfield(tr,'ii') || ...
-        ~isfield(tr,'ll') )
+    if ( ~isfield(tr,'xx') || ...
+         ~isfield(tr,'ii') || ...
+         ~isfield(tr,'ll') )
         error('scantree:incorrectAABBstruct', ...
             'Incorrect aabb-tree.') ;
     end
@@ -51,51 +53,58 @@ function [tm,im] = scantree(tr,pi,fn)
 %----------------------------------- alloc. output/workspace
     tm.ii = zeros(size(tr.ii,1),1);
     tm.ll = cell (size(tr.ii,1),1); 
-    im.ii = zeros(size(pi,1),1);
-    im.ll = cell (size(pi,1),1);
+    
     ss    = zeros(size(tr.ii,1),1);
     sl    = cell (size(tr.ii,1),1);
     sl{1} = (1:size(pi,1))';
     
     tf = ~cellfun('isempty',tr.ll);
     
-%------- partition query items amongst tree nodes: from root
+%---------- descend tree from root, push items amongst nodes
+
     ss(1) = +1; ns = +1; no = +1;
     while (ns ~= +0)
     %---------------------------------- _pop node from stack
         ni = ss(ns); ns = ns - 1;
         
         if (tf(ni))
-        %-- push output: non-empty node NI contains items LL
-            tm.ii(no) = ni; 
-            tm.ll{no} = sl{ns+1};
+        %-- push onto tree-item mapping -- non-empty node NI 
+        %-- contains items LL
+            tm.ii(no) = ni ; 
+            tm.ll{no} ...
+                = sl{ns+1} ;
             no = no + 1 ;
         end
         
         if (tr.ii(ni,+2)~=+0)
         %--------------------- partition amongst child nodes
-            c1 = tr.ii(ni,+2)+0;
-            c2 = tr.ii(ni,+2)+1;
+            c1 = ...
+            tr.ii(ni,2) + 0 ;
+            c2 = ...
+            tr.ii(ni,2) + 1 ;
+            
         %--------------------- user-defined partitions of LL
-           [j1,j2] = feval(fn,pi(sl{ns+1},:), ...
-                           tr.xx(c1,:), ...
-                           tr.xx(c2,:)) ;
+           [j1,j2] = feval( ...
+                fn,pi(sl{ns+1},:), ...
+                    tr.xx(c1,:),tr.xx(c2,:)) ;
+                           
         %--------------------- lists of items per child node
-            l1 = sl{ns+1}(j1); 
-            l2 = sl{ns+1}(j2);
+            l1 = sl{ns+1}(j1) ; 
+            l2 = sl{ns+1}(j2) ;
 
             if (~isempty(l1))
         %--------------------- push nonempty node onto stack
-                ns = ns + 1; 
-                ss(ns) = c1; 
-                sl{ns} = l1; 
+                ns = ns + 1 ; 
+                ss(ns) = c1 ; 
+                sl{ns} = l1 ; 
             end
             if (~isempty(l2)) 
         %--------------------- push nonempty node onto stack
-                ns = ns + 1; 
-                ss(ns) = c2; 
-                sl{ns} = l2; 
+                ns = ns + 1 ; 
+                ss(ns) = c2 ; 
+                sl{ns} = l2 ; 
             end
+            
         end
         
     end
@@ -104,26 +113,38 @@ function [tm,im] = scantree(tr,pi,fn)
     tm.ll(no:end) = [];
 
 %----------------------- compute inverse map only if desired
-    if (nargout == +1), return; end
+    if (nargout==+1), return; end
     
 %----------------------- accumulate pair'd tree-item matches
     ic = cell(no-1,+1); jc = tm.ll;
     for ip = +1 : no-1
         ni = tm.ii(ip);
-        ic{ip} = ni(ones(length(jc{ip}),1));
+        ic{ip} = ...
+          ni * ones(length(jc{ip}),1);
     end
-    ii = vertcat(ic{:}); ni = size(ii,1);
-    jj = vertcat(jc{:}); nj = size(jj,1);
+    ii = vertcat(ic{:}); 
+    ni = size(ii,1) ;
+    jj = vertcat(jc{:}); 
+    nj = size(jj,1) ;
+    
+    if (isempty(jj)), return; end
+    
+    im.ll = cell (size(pi,1),1) ;
+    
 %---------------------------------- invert ordering via sort
-   [jj,jx] = sort (jj) ; 
+   [jj,jx] =  sort(jj) ; 
     ii = ii(jx);
     jx = find(diff(jj)~=+0);
     im.ii = [jj(jx);jj(nj)];
     jx = [+0;jx;ni];
+    
 %----------------------- distribute single item-tree matches
     for ip = +1 : size(im.ii,1)
-        im.ll{ip} = ii(jx(ip+0)+1:jx(ip+1));
+        im.ll{ip} = ...
+            ii(jx(ip+0)+1:jx(ip+1)+0);
     end
     
 end
+
+
 
