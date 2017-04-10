@@ -44,7 +44,7 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
 
 %   Darren Engwirda : 2017 --
 %   Email           : engwirda@mit.edu
-%   Last updated    : 26/03/2017
+%   Last updated    : 05/04/2017
     
     filename = mfilename('fullpath');
     filepath = fileparts( filename );
@@ -299,7 +299,13 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
                 vert,tria(btri,:)) ;
       
         %-- TRUE if tria needs "unwinding" 
-            stol = +.80 ;
+            smin = +.70 ;
+            smax = +.90 ;
+            sdel = .025 ;
+        
+            stol = smin+iter*sdel;
+            stol = min (smax,stol) ;
+            
             btri = nscr <= stol ...
                  & nscr <  oscr ...
                  & tlow ;
@@ -467,7 +473,7 @@ function [opts] = makeopt(opts)
 %MAKEOPT setup the options structure for SMOOTH2.
     
     if (~isfield(opts,'iter'))
-        opts.iter = +32;
+        opts.iter = +32 ;
     else
     if (~isnumeric(opts.iter))
         error('smooth2:incorrectInputClass', ...

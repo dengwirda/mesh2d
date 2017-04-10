@@ -18,7 +18,7 @@ function [hval] = trihfn2(test,vert,tria,tree,hfun)
 
 %   Darren Engwirda : 2017 --
 %   Email           : engwirda@mit.edu
-%   Last updated    : 30/01/2017
+%   Last updated    : 07/04/2017
 
 %---------------------------------------------- basic checks    
     if ( ~isnumeric(test) || ...
@@ -58,7 +58,7 @@ function [hval] = trihfn2(test,vert,tria,tree,hfun)
 
 %-------------------------------------- test-to-tria queries
    [tp,tj] = ...
-        findtria(vert,tria,test,'pts',tree) ;
+    findtria (vert,tria,test,tree);
    
     if (isempty(tp))
         in = false(size(test,1),1);
