@@ -24,7 +24,7 @@ function [hfun] = limhfn2(vert,tria,hfun,dhdx)
 
 %   Darren Engwirda : 2017 --
 %   Email           : engwirda@mit.edu
-%   Last updated    : 21/01/2017
+%   Last updated    : 18/04/2017
 
 %---------------------------------------------- basic checks    
     if ( ~isnumeric(vert) || ...
@@ -56,7 +56,7 @@ function [hfun] = limhfn2(vert,tria,hfun,dhdx)
 %---------------------------------------------- basic checks
     if (min(min(tria(:,1:3))) < +1 || ...
             max(max(tria(:,1:3))) > nvrt )
-        error('limhfn2:invalidInputs', ...
+        error('limhfn2:invalidInputArgument', ...
             'Invalid TRIA input array.') ;
     end
 
@@ -66,47 +66,11 @@ function [hfun] = limhfn2(vert,tria,hfun,dhdx)
     evec = vert(edge(:,2),:) - ...
            vert(edge(:,1),:) ;
     elen = sqrt(sum(evec.^2,2)) ;
-    
-%----------------------------- exhaustive 'til all satisfied 
-    done = false; htol = +1.E-8 ;   
-    while (~done)
-        
-    %------------------------- reorder => better convergence
-        pvec = randperm(size(edge,1))' ;
-   
-        done = true ;
-   
-        for ppos = +1 : size(pvec,1)
-        
-            epos = pvec(ppos);
-        
-            ivrt = edge(epos,1);
-            jvrt = edge(epos,2);
-    
-            hdel = hfun(jvrt)-hfun(ivrt);
-            hdel = abs(hdel)./elen(epos);
-        
-            if (hdel > dhdx+htol)
-
-        %--------------------- calc. limits about min.-value           
-            done = false ;
-        
-            ilim = ...
-            hfun(jvrt) + dhdx*elen(epos);
-            jlim = ...
-            hfun(ivrt) + dhdx*elen(epos);
-
-            hfun(ivrt) = ... 
-                min(hfun(ivrt),ilim);
-            hfun(jvrt) = ...
-                min(hfun(jvrt),jlim);
-            
-            end
-        
-        end
-    
-    end
-
+  
+%-------------------- impose gradient limits over edge-graph  
+   [hfun] = limgrad( ...
+         edge,elen,hfun,dhdx,sqrt(nvrt)) ;
+ 
 end
 
 
