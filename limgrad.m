@@ -52,6 +52,10 @@ function [ffun,flag] = limgrad(edge,elen,ffun,dfdx,imax)
     nnod = size(ffun,1) ;
 
 %---------------------------------------------- basic checks
+    if (dfdx < +0. || imax < +0)
+        error('limgrad:invalidInputArgument', ...
+            'Invalid input parameter.');
+    end
     if (min(min(edge(:,1:2))) < +1 || ...
             max(max(edge(:,1:2))) > nnod )
         error('limgrad:invalidInputArgument', ...
