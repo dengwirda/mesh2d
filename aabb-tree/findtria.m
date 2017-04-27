@@ -134,6 +134,9 @@ function [tp,tj,tr] = findtria(pp,tt,pj,varargin)
 %------------------------------ re-index onto full obj. list  
     tp = zeros(size(pj,1),2);
     tp( :,2) = -1 ;
+    
+    if (isempty(ti)), return; end
+    
     tp(ti,:) = ip ;
     
 end
