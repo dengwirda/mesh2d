@@ -35,7 +35,7 @@ function [bp,bj,tr] = findball(bb,pp,varargin)
 
 %   Darren Engwirda : 2017 --
 %   Email           : engwirda@mit.edu
-%   Last updated    : 08/04/2017
+%   Last updated    : 27/04/2017
 
     bp = []; bj = []; tr = []; op = [];
 
