@@ -97,6 +97,9 @@ function [bp,bj,tr] = findball(bb,pp,varargin)
 %------------------------------ re-index onto full obj. list  
     bp = zeros(size(pp,1),2) ;
     bp( :,2) = -1 ;
+    
+    if (isempty(bi)), return ; end
+    
     bp(bi,:) = ip ;
 
 end
