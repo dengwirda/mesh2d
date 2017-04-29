@@ -7,7 +7,7 @@ function [bb] = tribal2(pp,tt)
 
 %   Darren Engwirda : 2017 --
 %   Email           : engwirda@mit.edu
-%   Last updated    : 02/02/2017
+%   Last updated    : 29/04/2017
 
 %---------------------------------------------- basic checks    
     if (~isnumeric(pp) || ...
