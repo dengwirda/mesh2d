@@ -20,7 +20,7 @@ function [bb] = tribal2(pp,tt)
         error('tribal2:incorrectDimensions' , ...
             'Incorrect input dimensions.');
     end
-    if (size(pp,2)~= +2 || size(tt,2)<= +3)
+    if (size(pp,2)~= +2 || size(tt,2) < +3)
         error('tribal2:incorrectDimensions' , ...
             'Incorrect input dimensions.');
     end
