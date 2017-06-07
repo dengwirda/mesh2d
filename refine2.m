@@ -94,9 +94,11 @@ function [vert,conn,tria,tnum] = refine2(varargin)
 %   mentation is available as part of the JIGSAW library. 
 %   For details, see: github.com/dengwirda/jigsaw-matlab.
 
+%-----------------------------------------------------------
 %   Darren Engwirda : 2017 --
-%   Email           : engwirda@mit.edu
-%   Last updated    : 24/03/2017
+%   Email           : de2363@columbia.edu
+%   Last updated    : 07/06/2017
+%-----------------------------------------------------------
     
     filename = mfilename('fullpath') ;
     filepath = fileparts( filename ) ;
@@ -235,10 +237,23 @@ function [vert,conn,tria,tnum] = refine2(varargin)
         cdtref2(vert,conn,tria,tnum, ...
             node,PSLG,part,opts,hfun,harg,iter);
     
-%-------------------------------- trim extra adjacency info.
-    tria = tria(:,1:3) ;
-    
     if (~isinf(opts.disp)), fprintf(1,'\n'); end
+        
+%-------------------------------- trim extra adjacency info.
+    tria = tria( :,1:3);
+    
+%-------------------------------- trim vert. - deflate bbox.
+    keep = false(size(vert,1),1);
+    keep(tria(:)) = true ;
+  
+    redo = zeros(size(vert,1),1);
+    redo(keep) = +1;
+    redo = cumsum(redo);
+    
+    conn = redo(conn);
+    tria = redo(tria);
+    
+    vert = vert(keep,:);
     
 end
 
@@ -1079,7 +1094,7 @@ function [opts] = makeopt(opts)
 %MAKEOPT setup the options structure for REFINE2.
 
     if (~isfield(opts,'dtri'))
-        opts.dtri = 'constrained';
+        opts.dtri = 'conforming';
     else
     if (~strcmpi(opts.dtri, 'conforming') && ...
         ~strcmpi(opts.dtri,'constrained') )
