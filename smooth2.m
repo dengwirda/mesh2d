@@ -42,9 +42,11 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
 %   climbing element quality guarantees, and vertex density
 %   controls.
 
+%-----------------------------------------------------------
 %   Darren Engwirda : 2017 --
-%   Email           : engwirda@mit.edu
-%   Last updated    : 05/04/2017
+%   Email           : de2363@columbia.edu
+%   Last updated    : 07/06/2017
+%-----------------------------------------------------------
     
     filename = mfilename('fullpath');
     filepath = fileparts( filename );
@@ -145,6 +147,21 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
     
     end
 
+%---------------------------------------------- inflate bbox
+    vmin = min(vert,[],+1) ;
+    vmax = max(vert,[],+1) ;
+    
+    vdel = vmax - 1.*vmin;
+    vmin = vmin - .5*vdel;
+    vmax = vmax + .5*vdel;
+
+    vbox = [vmin(1), vmin(2)
+            vmax(1), vmin(2)
+            vmax(1), vmax(2)
+            vmin(1), vmax(2)
+           ] ;
+    vert = [vert ; vbox] ;
+    
 %---------------------------------------------- DO MESH ITER
     tcpu.full = +0. ;
     tcpu.dtri = +0. ;
@@ -319,7 +336,7 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
             bvrt = false(size(vert,1),1);
             bvrt(ivrt) = true;
             
-            bnew =  +.80 ^ undo ;
+            bnew =  +.67 ^ undo ;
             bold =  +1.0 - bnew ;
             
             vert(bvrt,:) = ...
@@ -339,13 +356,29 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
     
     
         % todo!!
-        % delete small edges
         % refine large edges
-   
+        
+        lmax = +sqrt(+2.) ;
+        lmin = +1. / lmax ;
+        
+        evec = vert(edge(:,2),:) - ...
+               vert(edge(:,1),:) ;
+        elen = sqrt(sum(evec.^2,2)) ;
+        
+        hvrt = evalhfn( ...
+            vert,edge,hfun,harg) ;
+
+        hmid = hvrt(edge(:,1),:) ...
+             + hvrt(edge(:,2),:) ;
+        hmid = hmid * +.5 ;
+        scal = elen./hmid ;
         
     %------------------------------------- |deg|-based prune
         keep = false(size(vert,1),1);
         keep(vdeg>+4) = true;
+        
+        keep(edge(scal<=lmin,1)) = false;
+        
         keep(conn(:)) = true;
         keep(free(:)) = true;
         
@@ -356,7 +389,6 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
         conn = redo  (conn);
         
         vert = vert(keep,:);
-
   
     %------------------------------------- build current CDT
         ttic = tic ;
@@ -385,13 +417,26 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
         
     end
 
-    tria = tria(:, 1:3) ;
+    tria = tria(:,1:3) ;
+ 
+%----------------------------------------- prune unused vert
+    keep = false(size(vert,1),1);
+    keep(tria(:)) = true ;
+  
+    redo = zeros(size(vert,1),1);
+    redo(keep) = +1;
+    redo = cumsum(redo);
+    
+    conn = redo(conn);
+    tria = redo(tria);
+    
+    vert = vert(keep,:);
     
     tcpu.full = ...
         tcpu.full + toc(tnow) ;
 
     if (opts.dbug)
-    %------------------------------------- print debug timer 
+%----------------------------------------- print debug timer 
         fprintf(1,'\n') ;
         fprintf(1,' Mesh smoothing timer...\n');
         fprintf(1,'\n') ;
