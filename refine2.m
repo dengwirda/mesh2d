@@ -1094,7 +1094,7 @@ function [opts] = makeopt(opts)
 %MAKEOPT setup the options structure for REFINE2.
 
     if (~isfield(opts,'dtri'))
-        opts.dtri = 'conforming';
+        opts.dtri = 'constrained';
     else
     if (~strcmpi(opts.dtri, 'conforming') && ...
         ~strcmpi(opts.dtri,'constrained') )
