@@ -13,11 +13,13 @@ function drawscr(vert,conn,tria,tnum)
 %   array of part indexing, such that TNUM(II) is the index 
 %   of the part in which the II-TH triangle resides.
 %
-%   See also DRAWTRI, REFINE2, SMOOTH2
+%   See also REFINE2, SMOOTH2
 
+%-----------------------------------------------------------
 %   Darren Engwirda : 2017 --
-%   Email           : engwirda@mit.edu
-%   Last updated    : 17/01/2017
+%   Email           : de2363@columbia.edu
+%   Last updated    : 09/06/2017
+%-----------------------------------------------------------
 
 %---------------------------------------------- basic checks    
     if ( ~isnumeric(vert) || ...
@@ -92,16 +94,51 @@ function drawscr(vert,conn,tria,tnum)
     else
     
 %-- null size-func data
-    axes('position',axpos21); hold on;
+    axes('position',axpos31); hold on;
     scrhist(triscr2(vert,tria),'tria3');
     if (dolabel)
     title('Quality metrics (TRIA-2)');
     end
-    axes('position',axpos22); hold on;
+    axes('position',axpos32); hold on;
     anghist(triang2(vert,tria),'tria3');
+    axes('position',axpos33); hold on;
+    deghist(trideg2(vert,tria),'tria3');
     
     end
       
+end
+
+function deghist(dd,ty)
+%DEGHIST draw histogram for "degree" quality-metric.
+
+    dd = dd(:);
+    be = 1:max(dd);
+    hc = histc(dd,be);
+    
+    r = [.85,.00,.00] ; y = [1.0,.95,.00] ;
+    g = [.00,.90,.00] ; k = [.60,.60,.60] ;
+    
+    bar(be,hc,1.05,'facecolor',k,'edgecolor',k);
+    
+    axis tight;
+    set(gca,'ycolor', get(gca,'color'),'ytick',[],...
+        'xtick',2:2:12,'layer','top','fontsize',...
+            18,'linewidth',2.,'ticklength',[.025,.025],...
+                'box','off','xlim',[0,12]);
+     
+    switch (ty)
+    case 'tria4'
+        text(-.225,0,'$|d|_{\tau}$',...
+            'horizontalalignment','right',...
+                'fontsize',28,'interpreter','latex') ;
+        
+    case 'tria3'
+        text(-.225,0,'$|d|_{f}$',...
+            'horizontalalignment','right',...
+                'fontsize',28,'interpreter','latex') ;
+        
+    end
+    
 end
 
 function anghist(ad,ty)
