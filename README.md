@@ -15,6 +15,7 @@ The `MESH2D` package has been around now for a while(!), having been first relea
 
 After downloading and unzipping the current <a href="https://github.com/dengwirda/mesh2d/archive/master.zip">repository</a>, navigate to the installation directory within <a href="http://www.mathworks.com">`MATLAB`</a> / <a href="https://www.gnu.org/software/octave">`OCTAVE`</a> and run the set of examples contained in `tridemo.m`:
 ````
+tridemo( 0); % a very simple example to get everything started.
 tridemo( 1); % investigate the impact of the "radius-edge" threshold.
 tridemo( 2); % Frontal-Delaunay vs. Delaunay-refinement refinement.
 tridemo( 3); % explore impact of user-defined mesh-size constraints.
