@@ -97,7 +97,7 @@ function [vert,conn,tria,tnum] = refine2(varargin)
 %-----------------------------------------------------------
 %   Darren Engwirda : 2017 --
 %   Email           : de2363@columbia.edu
-%   Last updated    : 07/06/2017
+%   Last updated    : 09/06/2017
 %-----------------------------------------------------------
     
     filename = mfilename('fullpath') ;
@@ -203,7 +203,7 @@ function [vert,conn,tria,tnum] = refine2(varargin)
 ' -------------------------------------------------------\n', ...
              ] ) ;
     end
-
+    
 %-------------------------------- PASS 0: inflate box bounds
     vert = node ; tria = []; tnum = []; 
     conn = PSLG ; iter = +0;
@@ -988,15 +988,26 @@ function [vert,conn,tria,tnum,iter] = ...
       
     %------------------------------------- proximity filters
        [vp,vi] = ...
-          findball(new2,new2(:,1:2));
-       
-        keep = true (size(new2,1),1);
+          findball(new2,new2(:,1:2)) ;
+  
+        beta = .90 ;
+       %beta = 1.0 ;
+      
+        keep = true (size(new2,1),1) ;
         for ii = size(vp,1):-1:+1
             for ip = vp(ii,1) ...
                    : vp(ii,2)
                 jj = vi(ip);
-                if (jj<ii && keep(jj))           
+                if (keep(jj) && ...
+                    keep(ii) && ...
+                    jj < ii )
+                    
+                new2(jj,:) = ...    %%!! todo: convergence?!
+              + (0.+beta) * new2(jj,:) ...
+              + (1.-beta) * new2(ii,:) ;
+                
                 keep(ii) = false ;
+          
                 end 
             end
         end
@@ -1011,7 +1022,7 @@ function [vert,conn,tria,tnum,iter] = ...
           findball(bal1,new2(:,1:2));
         
         keep = true (size(new2,1),1);
-        for ii = size(vp,1):-1:+1
+        for ii = +1:+1:size(vp,1)
             for ip = vp(ii,1) ...
                    : vp(ii,2)
                 jj = vi(ip);
