@@ -1,5 +1,5 @@
 function [lp,lj,tr] = findline(pa,pb,pp,varargin)
-%FINDLINE spatial queries for collections of d-lines.
+%FINDLINE "point-on-line" queries in d-dimensional space.
 %   [LP,LI] = FINDLINE(PA,PB,PI) finds the set of d-dimensi-
 %   onal line-segments that intersect with a given spatial 
 %   query. Lines are specified as a set of endpoints [PA,PB]
@@ -37,7 +37,7 @@ function [lp,lj,tr] = findline(pa,pb,pp,varargin)
 %-----------------------------------------------------------
 %   Darren Engwirda : 2017 --
 %   Email           : de2363@columbia.edu
-%   Last updated    : 12/06/2017
+%   Last updated    : 13/06/2017
 %-----------------------------------------------------------
 
     lp = []; lj = []; tr = []; op = [];
@@ -85,7 +85,7 @@ function [lp,lj,tr] = findline(pa,pb,pp,varargin)
     end
       
     if (isempty(tr))
-%------------------------------ compute aabb-tree for d-ball
+%------------------------------ compute aabb-tree for d-line
         nd = size(pp,2) ;
         nl = size(pa,1) ;
         
@@ -108,7 +108,7 @@ function [lp,lj,tr] = findline(pa,pb,pp,varargin)
     
     zt = max(p1-p0) * eps^.8 ;
     
-%------------------------------ compute vert-to-ball queries
+%------------------------------ compute vert-to-line queries
    [li,ip,lj] = queryset( ...
        tr,tm,@linekern,pp,pa,pb,zt) ;
     
@@ -126,12 +126,12 @@ function [ip,il] = linekern(pk,lk,pp,pa,pb,zt)
 %LINEKERN d-dim. node//line intersection kernel routine.
 
         mp = length(pk);
-        mb = length(lk);
+        ml = length(lk);
   
     %-------------------------- push line/vert onto n*m tile
         pk = pk.' ;
         
-        pk = pk(ones(mb,1),:); 
+        pk = pk(ones(ml,1),:); 
         pk = pk(:); 
         lk = lk(:,ones(1,mp)); 
         lk = lk(:);
