@@ -74,21 +74,41 @@ function [vert,conn,tria,tnum] = refine2(varargin)
 %   Delaunay-refinement type mesh-generation. Both standard
 %   Delaunay-refinement and Frontal-Delaunay type algorithms
 %   are available. The Frontal-Delaunay approach is a simpl-
-%   ified version of the algorithm described in: D. Engwirda
-%   "Locally optimal Delaunay-refinement and optimisation-
-%   based mesh generation", Ph.D. Thesis, Univ. of Sydney, 
-%   2014. This work is an extension of the "off-centre" type
-%   methodology introduced in: H. Erten and A. Ungor, "Qual-
-%   ity triangulations with locally optimal Steiner points",
-%   SIAM Journal on Sci. Comp. 31(3) 2009, pp: 2103--2130.
+%   ified version of the JIGSAW algorithm, described in:
+%
+% * D. Engwirda, (2014): "Locally-optimal Delaunay-refineme-
+%   nt and optimisation-based mesh generation", Ph.D. Thesis 
+%   School of Mathematics and Statistics, Univ. of Sydney.
+%   http://hdl.handle.net/2123/13148
+%
+% * D. Engwirda & D. Ivers, (2016): "Off-centre Steiner poi-
+%   nts for Delaunay-refinement on curved surfaces", Comput-
+%   er-Aided Design, (72), 157--171.
+%   http://dx.doi.org/10.1016/j.cad.2015.10.007
+
+%   This work is an extension of the "off-centre" type tech-
+%   niques introduced in: 
+%
+% * H. Erten & A. Ungor, (2009): "Quality triangulation with 
+%   locally optimal Steiner points", SIAM Journal on Scient-
+%   ific Comp. 31(3), 2103--2130.
+%
+% * S. Rebay, (1993): "Efficient Unstructured Mesh Generati-
+%   on by Means of Delaunay Triangulation and Bowyer-Watson 
+%   Algorithm, J. Comp. Physics 106(1), 125--138.
+%   http://dx.doi.org/10.1006/jcph.1993.1097
+
 %   Generally speaking, the Delaunay-refinement method impl-
-%   emented here is a variantion of the original algorithm 
-%   described in: J. Ruppert, "A Delaunay refinement algori-
-%   thm for quality 2-dimensional mesh generation." Journal 
-%   of algorithms 18(3) 1995, pp: 548--585. See also: S. Ch-
-%   eng, T. Dey and J. Shewchuk, "Delaunay mesh generation",
-%   CRC Press, 2012, for a comprehensive coverage of Delaun-
-%   ay-based meshing techniques.
+%   emented here is a variantion of the "classical" algorit-
+%   hm introduced in: 
+%
+% * J. Ruppert, (1995): "A Delaunay refinement algorithm for 
+%   quality 2-dimensional mesh generation." Journal of Algo-
+%   rithms 18(3), 548--585. 
+
+%   See also: S. Cheng, T. Dey & J. Shewchuk, (2012): "Dela-
+%   unay mesh generation", CRC Press, for comprehensive cov-
+%   erage of Delaunay-based meshing techniques.
 
 %   A much more advanced, and fully three-dimensional imple-
 %   mentation is available as part of the JIGSAW library. 
