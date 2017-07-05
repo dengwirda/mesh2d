@@ -23,8 +23,8 @@ function [qi,qp,qj] = queryset(tr,tm,fn,varargin)
 %   See also MAPVERT, MAPRECT, MAKETREE
 
 %   Darren Engwirda : 2017 --
-%   Email           : engwirda@mit.edu
-%   Last updated    : 08/04/2017
+%   Email           : de2363@columbia.edu
+%   Last updated    : 05/07/2017
 
     qi = []; qp = []; qj = [];
 
@@ -88,7 +88,7 @@ function [qi,qp,qj] = queryset(tr,tm,fn,varargin)
 %-------------------------------- form sparse-style indexing
    [qi,ix] = sort (qi) ; 
     qj = qj(ix);
-    ix = find(diff(qi)>+0) ;
+    ix = find(diff(qi));
     
     ni = length (qi) ;
     

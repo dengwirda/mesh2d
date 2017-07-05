@@ -52,8 +52,8 @@ function [tp,tj,tr] = findtria(pp,tt,pj,varargin)
 %   http://hdl.handle.net/2123/13148
 
 %   Darren Engwirda : 2014 --
-%   Email           : engwirda@mit.edu
-%   Last updated    : 27/04/2017
+%   Email           : de2363@columbia.edu
+%   Last updated    : 05/07/2017
 
     tp = []; tj = []; tr = []; op = [];
 
@@ -114,14 +114,7 @@ function [tp,tj,tr] = findtria(pp,tt,pj,varargin)
         end
         bb = [bi,bj];
     
-%------------------------------ compute aabb-tree for aabb's
-        if (isempty(op))            % scale against |pj|
-            op.nobj = ceil(size(tt,1) / ...
-                           size(pj,1)) * +4 ;                   
-            op.nobj = max( +32,op.nobj) ;  
-            op.nobj = min(+256,op.nobj) ;
-        end
-        tr = maketree(bb,op);       % compute aabb-tree       
+        tr = maketree(bb);          % compute aabb-tree       
     end
     
 %------------------------------ compute tree-to-vert mapping

@@ -56,43 +56,71 @@ function [tr] = maketree(rp,varargin)
 %   http://hdl.handle.net/2123/13148
 
 %   Darren Engwirda : 2014 --
-%   Email           : engwirda@mit.edu
-%   Last updated    : 08/04/2017
+%   Email           : de2363@columbia.edu
+%   Last updated    : 03/07/2017
 
     tr.xx = []; tr.ii = []; tr.ll = {}; op = [];
     
 %------------------------------ quick return on empty inputs
     if (isempty(rp)), return; end
+    
 %---------------------------------------------- basic checks    
     if (~isnumeric(rp))
         error('maketree:incorrectInputClass', ...
             'Incorrect input class.');
     end
+    
 %---------------------------------------------- basic checks
     if (nargin < +1 || nargin > +2)
         error('maketree:incorrectNoOfInputs', ...
             'Incorrect number of inputs.');
     end
-    if (ndims(rp) ~= +2 || mod(size(rp,2),+2) ~= +0)
+    if (ndims(rp) ~= +2 || ...
+            mod(size(rp,2),2)~= +0)
         error('maketree:incorrectDimensions', ...
             'Incorrect input dimensions.');
     end
+    
 %------------------------------- extract user-defined inputs
     if (nargin >= +2), op = varargin{1}; end
+    
+    isoctave = exist( ...
+        'OCTAVE_VERSION','builtin') > 0;
+    
+    if (isoctave)
+    
+    %-- faster for OCTAVE with large tree block size; slower
+    %-- loop execution...
+    
+        NOBJ = +1024 ; 
+        
+    else
+    
+    %-- faster for MATLAB with small tree block size; better
+    %-- loop execution... 
+    
+        NOBJ =  + 32 ;
+        
+    end
+    
 %--------------------------------------- user-defined inputs
     if (~isstruct(op))
-        op.nobj = +32;
+        
+        op.nobj = NOBJ ;
         op.long = .75;
         op.vtol = .55;
+        
     else
+    
     %-------------------------------- bound population count
         if (isfield(op,'nobj'))
             if (op.nobj <= +0 )
                 error('Invalid options.') ;
             end
         else
-            op.nobj = +32;
+            op.nobj = NOBJ ;
         end
+        
     %-------------------------------- bound "long" tolerance
         if (isfield(op,'long'))
             if (op.long < +.0 || op.long > +1.)
@@ -101,6 +129,7 @@ function [tr] = maketree(rp,varargin)
         else
             op.long = .75; 
         end
+        
     %-------------------------------- bound "long" tolerance
         if (isfield(op,'vtol'))
             if (op.vtol < +.0 || op.vtol > +1.)
@@ -109,6 +138,7 @@ function [tr] = maketree(rp,varargin)
         else
             op.vtol = .55; 
         end
+        
     end
     
 %---------------------------------- dimensions of rectangles
