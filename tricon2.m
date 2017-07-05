@@ -13,8 +13,8 @@ function [ee,tt] = tricon2(varargin)
 %   up each triangle.
 
 %   Darren Engwirda : 2014 --
-%   Email           : engwirda@mit.edu
-%   Last updated    : 24/01/2017
+%   Email           : de2363@columbia.edu
+%   Last updated    : 30/06/2017
 
 %---------------------------------------------- extract args
     tt = []; cc = [];
@@ -49,6 +49,9 @@ function [ee,tt] = tricon2(varargin)
     end
     end
 
+    isoctave = ...
+    exist('OCTAVE_VERSION','builtin') > +0;
+        
     nt = size(tt,1);
     nc = size(cc,1);
 
@@ -68,7 +71,7 @@ function [ee,tt] = tricon2(varargin)
 %-- performed on vector inputs! 
     ee = sort(ee,2);
    [ed,iv,jv] = unique(ee*[2^31;1]);  
-    ee = ee (iv, :);
+    ee = ee  (iv,:);
     
 %------------------- tria-to-edge indexing: 3 edges per tria 
     tt = [tt, zeros(nt*1,3)] ;
@@ -77,6 +80,40 @@ function [ee,tt] = tricon2(varargin)
     tt(:,6) = jv((1:nt)+nt*2);
     
 %------------------- edge-to-tria indexing: 2 trias per edge
+
+    if (isoctave)
+    
+    %-- OCTAVE is *shockingly* bad at executing loops, so -- 
+    %-- even though it involves far more operations! -- call
+    %-- the vectorised version below.
+    
+    ne = size(ee,1);
+    ee = [ee, zeros(ne*1,3)] ;
+    
+    ei = [tt(:,4);tt(:,5);tt(:,6)] ;
+    ti = [(+1:nt),(+1:nt),(+1:nt)]';
+    
+   [ei,ix] = sort(ei,'ascend') ;
+    ti = ti  (ix,:);
+    
+    ix = find(diff(ei)>=+1);
+    
+    ni = length(ti);
+    
+    ep = [+1; ix+1];
+    ep = [ep; ni+1];
+  
+    in = ep(2:ne+1)-ep(1:ne+0) > 1 ;
+  
+    ee( :,3) = ti(ep(1:ne)+0);
+    ee(in,4) = ti(ep(  in)+1);
+    
+    else
+    
+    %-- MATLAB is actually pretty good at JIT-ing code these
+    %-- days, so use the asymptotically faster version based
+    %-- on the pre-computed ordering.
+    
     ne = size(ee,1);
     ee = [ee, zeros(ne*1,3)] ;
     ep = +3 * ones (ne*1,1)  ;
@@ -84,7 +121,7 @@ function [ee,tt] = tricon2(varargin)
         ei = tt(ti,4) ; 
         ee(ei,ep(ei)) = ti;
         ej = tt(ti,5) ;
-        ee(ej,ep(ej)) = ti;        
+        ee(ej,ep(ej)) = ti;
         ek = tt(ti,6) ;
         ee(ek,ep(ek)) = ti;
     
@@ -92,7 +129,9 @@ function [ee,tt] = tricon2(varargin)
         ep(ej) = ep(ej)+1 ;
         ep(ek) = ep(ek)+1 ;
     end
-       
+    
+    end
+    
     if (isempty(cc)), return; end
     
 %------------------------------------ find constrained edges

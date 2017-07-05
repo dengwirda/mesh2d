@@ -16,8 +16,8 @@ function [vert,econ,tria] = cfmtri2(vert,econ)
 %   See also DELTRI2, DELAUNAYN
 
 %   Darren Engwirda : 2017 --
-%   Email           : engwirda@mit.edu
-%   Last updated    : 24/03/2017
+%   Email           : de2363@columbia.edu
+%   Last updated    : 01/07/2017
 
 %---------------------------------------------- basic checks    
     if ( ~isnumeric(vert) || ...
@@ -56,8 +56,7 @@ function [vert,econ,tria] = cfmtri2(vert,econ)
     while (true)
 
     %----------------- un-constrained delaunay triangulation
-        tria = delaunay( ...
-            vert(:,1),vert(:,2)) ;
+        tria = delaunay2(vert) ;
 
         nv = size(vert,+1);
         nt = size(tria,+1);     
@@ -96,5 +95,46 @@ function [vert,econ,tria] = cfmtri2(vert,econ)
 
 end
 
+function [tria] = delaunay2(vert)
+%DELAUNAY2 thin wrapper for DELAUNAYN, so that we can have a
+%   more efficient version in OCTAVE...
+
+    isoctave = exist( ...
+        'OCTAVE_VERSION','builtin')>+0;
+
+    if (isoctave)
+
+    %-- call QHULL and then filter zero-volume simplexes via
+    %-- vectorised area comparisons.
+    
+        tria = __delaunayn__ (vert) ;
+
+        ab = vert(tria(:,2),:) ...
+           - vert(tria(:,1),:) ;
+        ac = vert(tria(:,3),:) ...
+           - vert(tria(:,1),:) ;
+           
+        aa = ab(:,1).* ac(:,2) ...
+           - ab(:,2).* ac(:,1) ;
+           
+        lb = sumsq(ab,2) ;
+        lc = sumsq(ac,2) ;    
+        
+        ll = max (lb,lc) ;
+    
+        keep = abs(aa) >= ll * eps^.8 ;
+        
+        tria = tria(keep,:);
+    
+    else
+
+    %-- the default call in MATLAB seems to be fast enough!!  
+  
+        tria = ...
+        delaunay (vert(:,1),vert(:,2));
+  
+    end
+       
+end
 
 

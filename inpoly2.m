@@ -28,13 +28,9 @@ function [stat] = inpoly2(varargin)
 %
 %   This implementation seeks to improve these bounds:
 %
-% * Sorting the query points by y-value and determining can-
-%   didate edge intersection sets via binary-search. This
-%   reduces overall algorithmic complexity, with O(N*LOG(N))
-%   operations required for sorting, O(M*LOG(N)) operations
-%   required for the set of binary-searches, and O(M*H) ope-
-%   rations required for the intersection tests, where H is
-%   typically small in the average case, such that H << N. 
+% * Binning the query points by y-value and determining can-
+%   didate edge intersection sets via bin overlap. This red-
+%   uces overall algorithmic complexity.
 %
 % * Carefully checking points against the bounding-box asso-
 %   ciated with each polygon edge. This minimises the number
@@ -42,8 +38,8 @@ function [stat] = inpoly2(varargin)
 %   test.
 
 %   Darren Engwirda : 2017 --
-%   Email           : engwirda@mit.edu
-%   Last updated    : 24/03/2017
+%   Email           : de2363@columbia.edu
+%   Last updated    : 05/07/2017
 
 %---------------------------------------------- extract args
     node = []; edge = []; vert = [];
@@ -94,58 +90,138 @@ function [stat] = inpoly2(varargin)
            min(vert,[],1) ;
     
     if (ddxy(1) > ddxy(2))
-    vert = vert(:,[2,1]) ;
-    node = node(:,[2,1]) ;
+        vert = vert(:,[2,1]) ;
+        node = node(:,[2,1]) ;
     end
     
 %----------------------------------- sort points via y-value
-   [yvec,ivec] = sort(vert(:,+2)) ;
-    vert = vert(ivec,[1:2]) ;
-
-    stat = false(nvrt,1) ;
-
-%----------------------------------- loop over polygon edges
-    for epos = +1 : size(edge,1)
+    swap = node(edge(:,2),2) ...
+         < node(edge(:,1),2) ;
+         
+    edge(swap,[1,2]) = ...
+        edge(swap,[2,1]) ;
+     
+%----------------------------------- setup "bins" on y-value
+    ybin = ...
+      unique(node (:,2)) ;
     
+    nbin = length (ybin) ;
+
+%----------------------------------- "bin" edges via y-value
+   [junk,bmin] = histc( ...
+        node(edge(:,1),2),ybin);
+        
+   [junk,bmax] = histc( ...
+        node(edge(:,2),2),ybin);
+    
+%----------------------------------- "bin" points on y-value
+   [junk,vmap] = ...
+        histc(vert( :,+2),ybin);
+        
+   [vmap,vidx] = sort(vmap);
+   
+    vidx = vidx(vmap~=0) ;
+    vmap = vmap(vmap~=0) ;
+   
+    iptr = find( diff(vmap)) ;
+   
+    nidx = length (vidx) ;
+    
+    ibin = vmap([iptr;nidx]) ;
+   
+    vptr = zeros(nbin,2) ;
+    vptr(ibin,1) = [+1; iptr+1];
+    vptr(ibin,2) = [iptr; nidx];
+ 
+%----------------------------------- do crossing-number test
+    isoctave = exist( ...
+        'OCTAVE_VERSION','builtin') > +0 ;
+        
+    stat = false(nvrt,1);
+        
+    for epos = +1 : size(edge,1)
+        
+    %------------------------------- find intersecting boxes   
+        imin = bmin(epos);
+        imax = bmax(epos);
+        
+        while (vptr(imin,1)==0 && imin < imax)
+            imin = imin+1;
+        end
+        
+        while (vptr(imax,1)==0 && imax > imin)
+            imax = imax-1;
+        end
+   
+        head = vptr(imin,1) ;
+        tail = vptr(imax,2) ;
+        
+        if (head==+0), continue ; end
+   
+        if (isoctave)
+        
+    %-- OCTAVE is *shockingly* bad at executing loops, so -- 
+    %-- even though it involves far more operations! -- call
+    %-- the vectorised version below.
+            
         inod = edge(epos,1) ;
         jnod = edge(epos,2) ;
 
     %------------------------------- calc. edge bounding-box
-        if (node(inod,2) < node(jnod,2))
         yone = node(inod,2) ;
         ytwo = node(jnod,2) ;
         xone = node(inod,1) ;
         xtwo = node(jnod,1) ;
+        
+        ydel = ytwo - yone;
+        xdel = xtwo - xone;
+     
+    %------------------------------- calc. edge-intersection
+        vset = ...
+            vidx(head:tail) ;
+        
+        xpos = vert(vset,1) ;
+        ypos = vert(vset,2) ;
+    
+        cros = ypos >=yone  & ...
+               ypos < ytwo  & ...
+        ydel* (xpos - xone)<= ...
+        xdel* (ypos - yone) ;
+   
+        stat(vset(cros)) = ...
+            ~stat(vset(cros)) ;
+    
         else
-        yone = node(jnod,2) ;
-        ytwo = node(inod,2) ;
-        xone = node(jnod,1) ;
-        xtwo = node(inod,1) ;
-        end
 
+    %-- MATLAB is actually pretty good at JIT-ing code these
+    %-- days, so use the asymptotically faster version based
+    %-- on the pre-computed ordering.
+        
+        inod = edge(epos,1) ;
+        jnod = edge(epos,2) ;
+
+    %------------------------------- calc. edge bounding-box
+        yone = node(inod,2) ;
+        ytwo = node(jnod,2) ;
+        xone = node(inod,1) ;
+        xtwo = node(jnod,1) ;
+        
         ydel = ytwo - yone;
         xdel = xtwo - xone;
 
-        if (node(inod,1) < node(jnod,1))
-        xmin = node(inod,1) ;
-        xmax = node(jnod,1) ;        
-        else
-        xmin = node(jnod,1) ;
-        xmax = node(inod,1) ;
-        end
-
-    %------------------------------- find VERT(IPOS,2)<=YONE
-       [ipos] = find_up(yvec, yone) ;
-
-    %------------------------------- calc. edge-intersection
-        for jpos = ipos+1 : nvrt
+        xmin = min(xone,xtwo) ;        
+          
+    %------------------------------- calc. edge-intersection  
+        for kpos = head:tail
         
+            jpos = vidx(kpos,1) ;            
             ypos = vert(jpos,2) ;
-            if (ypos <  ytwo)
+            if (ypos >=yone && ...
+                ypos < ytwo )
                 xpos = vert(jpos,1) ;
                 if (xpos >= xmin)
-                    if (xpos <= xmax && ...
-                    ydel* (xpos-xone) < ...
+                    if ( ...
+                    ydel* (xpos-xone)<= ...
                     xdel* (ypos-yone) )
                     
                     stat(jpos) = ...
@@ -155,17 +231,16 @@ function [stat] = inpoly2(varargin)
                     stat(jpos) = ...
                         ~stat(jpos) ;
                 end
-            else
-                break ;             % done - due to the sort
             end
-        
+            
         end
-
+              
+        end
+            
     end
-
-    stat(ivec) = stat ;
-
-end
-
-
-
+         
+ end
+ 
+ 
+ 
+ 

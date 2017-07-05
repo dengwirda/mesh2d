@@ -45,7 +45,7 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
 %-----------------------------------------------------------
 %   Darren Engwirda : 2017 --
 %   Email           : de2363@columbia.edu
-%   Last updated    : 07/06/2017
+%   Last updated    : 01/07/2017
 %-----------------------------------------------------------
     
     filename = mfilename('fullpath');
@@ -66,9 +66,9 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
     if (nargin>=+7), harg = varargin(7:end); end
 
    [opts] = makeopt(opts) ;
-
+   
 %---------------------------------------------- default TNUM
-    if (isempty(tnum)), 
+    if (isempty(tnum))
         tnum = ones(size(tria, 1), 1) ; 
     end
 
@@ -173,42 +173,40 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
     tnow =  tic ;
      
     for iter = +1 : opts.iter
-
+ 
     %------------------------------------------ inflate adj.
         ttic = tic ;
        
-       [edge,tria] = tricon2(tria,conn);
-
+       [edge,tria] = tricon2(tria,conn) ;
+       
         tcpu.tcon = ...
             tcpu.tcon + toc(ttic) ;
-
-    %------------------------------------------ vertex |deg|
-        vdeg = zeros(size(vert,1),1) ;
-        for epos = +1 : size(edge,1)
-            
-            ivrt = edge(epos,1);
-            jvrt = edge(epos,2);
- 
-            vdeg(ivrt) = ...
-                vdeg(ivrt) + 1 ;
-            vdeg(jvrt) = ...
-                vdeg(jvrt) + 1 ;
     
-        end
-        free = (vdeg == 0) ; 
-        
     %------------------------------------------ compute scr.
         oscr = triscr2(vert,tria) ;
         
     %------------------------------------------ vert. iter's
         ttic =  tic ;
         
+        nvrt = size(vert,1);
+        nedg = size(edge,1);
+        
+        IMAT = sparse( ...
+           edge(:,1),(1:nedg)',+1,nvrt,nedg) ;
+        JMAT = sparse( ...
+           edge(:,2),(1:nedg)',+1,nvrt,nedg) ;
+    
+        EMAT = IMAT + JMAT ;
+     
+        vdeg = sum(EMAT,2) ;                %-- vertex |deg|
+        free = (vdeg == 0) ;
+       
         vold = vert ;
         for isub = +1 : max(+2,min(+8,iter))
     
         %-- compute HFUN at vert/midpoints
-            hvrt = evalhfn( ...
-                vert,edge,hfun,harg) ;
+            hvrt = evalhfn(vert, ...
+                edge,EMAT,hfun,harg) ;
                 
             hmid = hvrt(edge(:,1),:) ...
                  + hvrt(edge(:,2),:) ;
@@ -217,9 +215,10 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
         %-- calc. relative edge extensions        
             evec = vert(edge(:,2),:) ...
                  - vert(edge(:,1),:) ;
-            elen = sqrt(sum(evec.^2,2));
+            elen = ...
+                sqrt(sum(evec.^2,2)) ;
             
-            scal = +1. - elen./hmid;
+            scal = +1.0-elen./hmid ;
             scal = min (+1.0, scal);
             scal = max (-1.0, scal);
             
@@ -229,46 +228,26 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
             jpos = vert(edge(:,2),:) ...
                  +.67*[scal,scal].*evec;
             
-            scal = abs(scal);
+            scal = abs(scal) .^ .5;         %-- nlin. weight
+           %scal = abs(scal);
+           %scal = abs(scal) .^ 2.;
             
-        %-- sum contributions edge-to-vert
-            vsum = zeros(size(vert,1),1) ;
-            vsum = vsum + eps^.8;
-            vnew = vert * eps^.8;
-            for epos = +1 : size(edge,1)
+        %-- sum contributions edge-to-vert        
+            vnew = ...
+            IMAT*([scal,scal] .* ipos) ...
+          + JMAT*([scal,scal] .* jpos) ;
+      
+            vsum = max(EMAT*scal,eps);
             
-                ivrt = edge(epos,1);
-                jvrt = edge(epos,2);
+            vnew = vnew ./ [vsum,vsum] ;
 
-                wval = scal(epos,1);
-               %wval = +1. ;
-
-                vsum(ivrt,1) = ...
-                vsum(ivrt,1) + wval;
-                vsum(jvrt,1) = ...
-                vsum(jvrt,1) + wval;
-
-                vnew(ivrt,1) = ...
-                vnew(ivrt,1) + ...
-                    wval * ipos(epos,1);
-                vnew(ivrt,2) = ...
-                vnew(ivrt,2) + ...
-                    wval * ipos(epos,2);
-            
-                vnew(jvrt,1) = ...
-                vnew(jvrt,1) + ...
-                    wval * jpos(epos,1);
-                vnew(jvrt,2) = ...
-                vnew(jvrt,2) + ...
-                    wval * jpos(epos,2);
-            
-            end
-            vnew = vnew ./ [vsum, vsum];
-            
         %-- fixed points. edge projection?
             vnew(conn(:),1:2) = ...
             vert(conn(:),1:2) ;
             
+            vnew(vdeg==0,1:2) = ...
+            vert(vdeg==0,1:2) ;
+        
         %-- reset for the next local iter.         
             vert = vnew ;
     
@@ -280,37 +259,11 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
     %------------------------------------------ hill-climber
         ttic = tic ;
         
-    %-- find worst tria adj. to each vert.
-        lscr = ones (size(vert,1),1) ;
-        ilow = zeros(size(vert,1),1) ;
-        for tpos = +1 : size(tria,1)
-
-        ivrt = tria(tpos,1) ;
-        jvrt = tria(tpos,2) ;
-        kvrt = tria(tpos,3) ;
-        
-        if (lscr(ivrt) > oscr(tpos))
-            ilow(ivrt) = tpos;
-            lscr(ivrt) = oscr(tpos);
-        end
-        if (lscr(jvrt) > oscr(tpos))
-            ilow(jvrt) = tpos;
-            lscr(jvrt) = oscr(tpos);
-        end
-        if (lscr(kvrt) > oscr(tpos))
-            ilow(kvrt) = tpos;
-            lscr(kvrt) = oscr(tpos);
-        end
-        
-        end
-        tlow = false(size(tria,1),1) ;
-        tlow(ilow(ilow > +0)) = true ;
-        
     %-- unwind vert. upadte if score lower
         nscr = ones(size(tria,1),1);
         btri = true(size(tria,1),1);
         
-        for undo = +1 : size(vert,+1)
+        for undo = +1 : size(vert,1)
         
             nscr(btri) = triscr2( ...
                 vert,tria(btri,:)) ;
@@ -324,27 +277,27 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
             stol = min (smax,stol) ;
             
             btri = nscr <= stol ...
-                 & nscr <  oscr ...
-                 & tlow ;
+                 & nscr <  oscr ;
              
             if (~any(btri)), break; end
              
         %-- relax toward old vert. coord's
             ivrt = ...
-              unique(tria(btri,1:3));
+               unique(tria(btri,1:3));
             
-            bvrt = false(size(vert,1),1);
+            bvrt = ...
+               false(size(vert,1),1) ;
             bvrt(ivrt) = true;
             
-            bnew =  +.67 ^ undo ;
+            bnew =  +.75 ^ undo ;
             bold =  +1.0 - bnew ;
             
             vert(bvrt,:) = ...
                 bold * vold(bvrt,:) ... 
               + bnew * vert(bvrt,:) ;
       
-            btri = ...
-                any(bvrt(tria(:,1:3)),2);
+            btri = any( ...
+               bvrt(tria(:,1:3)),2) ;
         
         end
     
@@ -352,21 +305,16 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
             tcpu.undo + toc(ttic) ;
     
     %------------------------------------- test convergence!
-        vdel = sqrt(sum((vert-vold).^2, 2)) ;
+        vdel = sqrt(...
+            sum((vert-vold).^2, 2)) ;
     
-    
-        % todo!!
-        % refine large edges
+        evec = vert(edge(:,2),:) ...
+             - vert(edge(:,1),:) ;
+        elen = ...
+            sqrt(sum(evec.^2,2)) ;
         
-        lmax = +sqrt(+2.) ;
-        lmin = +1. / lmax ;
-        
-        evec = vert(edge(:,2),:) - ...
-               vert(edge(:,1),:) ;
-        elen = sqrt(sum(evec.^2,2)) ;
-        
-        hvrt = evalhfn( ...
-            vert,edge,hfun,harg) ;
+        hvrt = evalhfn(vert, ...
+            edge,EMAT,hfun,harg) ;
 
         hmid = hvrt(edge(:,1),:) ...
              + hvrt(edge(:,2),:) ;
@@ -374,10 +322,18 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
         scal = elen./hmid ;
         
     %------------------------------------- |deg|-based prune
+        lmax = +sqrt(+2.) ;
+        lmin = +1. / lmax ;
+    
         keep = false(size(vert,1),1);
         keep(vdeg>+4) = true;
         
-        keep(edge(scal<=lmin,1)) = false;
+        less = scal<=lmin ;
+        more = scal>=lmax ;
+        
+        keep(edge(less,1)) = false;
+        
+        %%!! todo: refine large edges
         
         keep(conn(:)) = true;
         keep(free(:)) = true;
@@ -459,7 +415,7 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
 
 end
 
-function [hvrt] = evalhfn(vert,edge,hfun,harg)
+function [hvrt] = evalhfn(vert,edge,EMAT,hfun,harg)
 %EVALHFN eval. the spacing-fun. at mesh vertices.
 
     if (~isempty (hfun))
@@ -472,39 +428,15 @@ function [hvrt] = evalhfn(vert,edge,hfun,harg)
         end
     else
     
-%-- if no HFUN, HFUN is "weighted" edge-len. at vertices
-    
-        hvrt = zeros(size(vert,1),1) ;
-        wval = zeros(size(vert,1),1) ;
-    
+%-- no HFUN - HVRT is mean edge-len. at vertices!      
         evec = vert(edge(:,2),:) - ...
                vert(edge(:,1),:) ;
-        elen = sqrt(sum(evec.^2,2));
-        
-        for epos = +1 : size(edge,1)
-            
-            ivrt = edge(epos,1);
-            jvrt = edge(epos,2);
- 
-           %wcur = +1./elen(epos) ;
-            wcur = +1. ;
-            
-            hvrt(ivrt) = ...
-            hvrt(ivrt) + ...
-                wcur * elen(epos) ;
-            hvrt(jvrt) = ...
-            hvrt(jvrt) + ...
-                wcur * elen(epos) ;
-            
-            wval(ivrt) = ...
-            wval(ivrt) + wcur;
-            wval(jvrt) = ...
-            wval(jvrt) + wcur;
+        elen = sqrt(sum(evec.^2,2)) ;
                 
-        end
-        hvrt = hvrt ./ max(eps,wval) ;
+        hvrt = (EMAT*elen) ...
+            ./ max(sum(EMAT,2),eps) ;
         
-        free = true (size(vert,1),1) ;
+        free = true(size(vert,1),1) ;
         free(edge(:,1)) = false;
         free(edge(:,2)) = false;
         

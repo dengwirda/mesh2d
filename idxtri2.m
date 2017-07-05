@@ -12,8 +12,8 @@ function [tree] = idxtri2(vert,tria)
 %   See also TRIHFN2, LFSHFN2, MAKETREE 
 
 %   Darren Engwirda : 2017 --
-%   Email           : engwirda@mit.edu
-%   Last updated    : 25/01/2017
+%   Email           : de2363@columbia.edu
+%   Last updated    : 03/07/2017
 
     filename = mfilename('fullpath');
     filepath = fileparts( filename );
@@ -59,11 +59,27 @@ function [tree] = idxtri2(vert,tria)
         max(bmax,vert(tria(:,ii), :));
     end
 
-    opts.nobj = +16 ;
-
+    isoctave = exist( ...
+        'OCTAVE_VERSION','builtin') > +0 ;
+    
+    if (isoctave)
+    
+    %-- faster for OCTAVE with large tree block size; slower
+    %-- loop execution...
+    
+        opts.nobj = +256 ; 
+        
+    else
+    
+    %-- faster for MATLAB with small tree block size; better
+    %-- loop execution... 
+    
+        opts.nobj = + 16 ;
+        
+    end
+    
     tree = maketree([bmin,bmax],opts);
 
 end
-
 
 
