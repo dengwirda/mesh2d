@@ -45,7 +45,7 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
 %-----------------------------------------------------------
 %   Darren Engwirda : 2017 --
 %   Email           : de2363@columbia.edu
-%   Last updated    : 01/07/2017
+%   Last updated    : 05/07/2017
 %-----------------------------------------------------------
     
     filename = mfilename('fullpath');
@@ -228,16 +228,19 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
             jpos = vert(edge(:,2),:) ...
                  +.67*[scal,scal].*evec;
             
-            scal = abs(scal) .^ .5;         %-- nlin. weight
-           %scal = abs(scal);
-           %scal = abs(scal) .^ 2.;
+            scal = ...                      %-- nlin. weight
+               max(abs(scal).^.5,eps^.75); 
+           %scal = ...
+           %   max(abs(scal)    ,eps^.75);
+           %scal = ...
+           %   max(abs(scal).^2.,eps^.75);
             
         %-- sum contributions edge-to-vert        
             vnew = ...
             IMAT*([scal,scal] .* ipos) ...
           + JMAT*([scal,scal] .* jpos) ;
       
-            vsum = max(EMAT*scal,eps);
+            vsum = max(EMAT*scal,eps^.75);
             
             vnew = vnew ./ [vsum,vsum] ;
 
@@ -318,9 +321,9 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
 
         hmid = hvrt(edge(:,1),:) ...
              + hvrt(edge(:,2),:) ;
-        hmid = hmid * +.5 ;
+        hmid = hmid * 0.5 ;
         scal = elen./hmid ;
-        
+  
     %------------------------------------- |deg|-based prune
         lmax = +sqrt(+2.) ;
         lmin = +1. / lmax ;
@@ -331,12 +334,15 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
         less = scal<=lmin ;
         more = scal>=lmax ;
         
+        less(edge(:,5)~=0) = false;
+        more(edge(:,5)~=0) = false;
+        
         keep(edge(less,1)) = false;
         
         %%!! todo: refine large edges
         
-        keep(conn(:)) = true;
-        keep(free(:)) = true;
+        keep(conn(:)) = true ;
+        keep(free(:)) = true ;
         
     %------------------------------------- reindex vert/conn 
         redo = zeros(size(vert,1),1);
@@ -345,7 +351,7 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
         conn = redo  (conn);
         
         vert = vert(keep,:);
-  
+        
     %------------------------------------- build current CDT
         ttic = tic ;
        
@@ -450,7 +456,7 @@ function [opts] = makeopt(opts)
 %MAKEOPT setup the options structure for SMOOTH2.
     
     if (~isfield(opts,'iter'))
-        opts.iter = +32 ;
+        opts.iter = +32;
     else
     if (~isnumeric(opts.iter))
         error('smooth2:incorrectInputClass', ...
