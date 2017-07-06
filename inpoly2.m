@@ -84,7 +84,9 @@ function [stat] = inpoly2(varargin)
         error('inpoly2:invalidInputs', ...
             'Invalid EDGE input array.') ;
     end
-
+    
+    stat = false (nvrt,1) ;
+    
 %-------------- flip to ensure the y-axis is the "long" axis
     ddxy = max(vert,[],1) - ...
            min(vert,[],1) ;
@@ -122,6 +124,8 @@ function [stat] = inpoly2(varargin)
    
     vidx = vidx(vmap~=0) ;
     vmap = vmap(vmap~=0) ;
+    
+    if (isempty(vmap)), return ; end
    
     iptr = find( diff(vmap)) ;
    
@@ -136,9 +140,7 @@ function [stat] = inpoly2(varargin)
 %----------------------------------- do crossing-number test
     isoctave = exist( ...
         'OCTAVE_VERSION','builtin') > +0 ;
-        
-    stat = false(nvrt,1);
-        
+    
     for epos = +1 : size(edge,1)
         
     %------------------------------- find intersecting boxes   
