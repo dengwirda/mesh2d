@@ -1,4 +1,4 @@
-function drawscr(vert,conn,tria,tnum)
+function drawscr(varargin)
 %DRAWSCR draw quality-metrics for a 2-simplex triangulation
 %embedded in the two-dimensional plane.
 %   DRAWSCR(VERT,EDGE,TRIA,TNUM) draws histograms of quality
@@ -13,19 +13,36 @@ function drawscr(vert,conn,tria,tnum)
 %   array of part indexing, such that TNUM(II) is the index 
 %   of the part in which the II-TH triangle resides.
 %
+%   DRAWSCR(...,HVRT) additionally draws histograms of rela-
+%   tive edge-length, indicating conformance to the spacing
+%   constraints. HVRT is a V-by-1 array of spacing informat-
+%   ion, per an evaluation of the mesh-size function at the
+%   mesh vertices VERT.
+%
 %   See also REFINE2, SMOOTH2
 
 %-----------------------------------------------------------
 %   Darren Engwirda : 2017 --
 %   Email           : de2363@columbia.edu
-%   Last updated    : 09/06/2017
+%   Last updated    : 11/07/2017
 %-----------------------------------------------------------
+
+    vert = [] ; conn = [] ; tria = [] ; 
+    tnum = [] ; hvrt = [] ;
+
+%---------------------------------------------- extract args
+    if (nargin>=+1), vert = varargin{1}; end
+    if (nargin>=+2), conn = varargin{2}; end
+    if (nargin>=+3), tria = varargin{3}; end
+    if (nargin>=+4), tnum = varargin{4}; end
+    if (nargin>=+5), hvrt = varargin{5}; end
 
 %---------------------------------------------- basic checks    
     if ( ~isnumeric(vert) || ...
          ~isnumeric(conn) || ...
          ~isnumeric(tria) || ...
-         ~isnumeric(tnum) )
+         ~isnumeric(tnum) || ...
+         ~isnumeric(hvrt) )
         error('drawscr:incorrectInputClass' , ...
             'Incorrect input class.') ;
     end
@@ -33,8 +50,7 @@ function drawscr(vert,conn,tria,tnum)
 %---------------------------------------------- basic checks
     if (ndims(vert) ~= +2 || ...
         ndims(conn) ~= +2 || ...
-        ndims(tria) ~= +2 || ...
-        ndims(tnum) ~= +2 )
+        ndims(tria) ~= +2 )
         error('drawscr:incorrectDimensions' , ...
             'Incorrect input dimensions.');
     end
@@ -46,6 +62,7 @@ function drawscr(vert,conn,tria,tnum)
     end
 
     nvrt = size(vert,1) ;
+    ntri = size(tria,1) ;
 
 %---------------------------------------------- basic checks
     if (min(min(conn(:,1:2))) < +1 || ...
@@ -62,43 +79,40 @@ function drawscr(vert,conn,tria,tnum)
 
 %-- borrowed from the JIGSAW library!
 
-    dolabel = true ;
-
 %-- draw sub-axes directly -- sub-plot gives
-%-- silly inconsistent spacing...!
+%-- silly inconsistent ax spacing...!
     
-    axpos21 = [.125,.60,.80,.30] ;
-    axpos22 = [.125,.15,.80,.30] ;
+    axpos31 = [.125,.750,.800,.150] ;
+    axpos32 = [.125,.450,.800,.150] ;
+    axpos33 = [.125,.150,.800,.150] ;
     
-    axpos31 = [.125,.75,.80,.15] ;
-    axpos32 = [.125,.45,.80,.15] ;
-    axpos33 = [.125,.15,.80,.15] ;
+    axpos41 = [.125,.835,.800,.135] ;
+    axpos42 = [.125,.590,.800,.135] ;
+    axpos43 = [.125,.345,.800,.135] ;
+    axpos44 = [.125,.100,.800,.135] ;
     
 %-- draw cost histograms for 2-tria elements
     figure;
-    set(gcf,'color','w','position',[128,128,640,300]);
-   %if (isfield(cost.tria3,'hfunc') )
-    if (false)
+    set(gcf,'color','w','units','normalized', ...
+        'position',[.05,.10,.30,.30]);
+    if (~isempty(hvrt))
     
 %-- have size-func data
-    axes('position',axpos31); hold on;
+    axes('position',axpos41); hold on;
     scrhist(triscr2(vert,tria),'tria3');
-    if (dolabel)
-    title('Quality metrics (TRIA-2)');
-    end
-    axes('position',axpos32); hold on;
+    axes('position',axpos42); hold on;
     anghist(triang2(vert,tria),'tria3');
-    axes('position',axpos33); hold on;
-   %hfnhist(trihfn2(vert,tria),'tria3');
+    axes('position',axpos43); hold on;
+    hfnhist(relhfn2(vert, ...
+                    tria,hvrt),'tria3');
+    axes('position',axpos44); hold on;
+    deghist(trideg2(vert,tria),'tria3');
     
     else
     
 %-- null size-func data
     axes('position',axpos31); hold on;
     scrhist(triscr2(vert,tria),'tria3');
-    if (dolabel)
-    title('Quality metrics (TRIA-2)');
-    end
     axes('position',axpos32); hold on;
     anghist(triang2(vert,tria),'tria3');
     axes('position',axpos33); hold on;
@@ -123,19 +137,19 @@ function deghist(dd,ty)
     axis tight;
     set(gca,'ycolor', get(gca,'color'),'ytick',[],...
         'xtick',2:2:12,'layer','top','fontsize',...
-            18,'linewidth',2.,'ticklength',[.025,.025],...
+            14,'linewidth',2.,'ticklength',[.025,.025],...
                 'box','off','xlim',[0,12]);
      
     switch (ty)
     case 'tria4'
         text(-.225,0,'$|d|_{\tau}$',...
             'horizontalalignment','right',...
-                'fontsize',28,'interpreter','latex') ;
+                'fontsize',22,'interpreter','latex') ;
         
     case 'tria3'
         text(-.225,0,'$|d|_{f}$',...
             'horizontalalignment','right',...
-                'fontsize',28,'interpreter','latex') ;
+                'fontsize',22,'interpreter','latex') ;
         
     end
     
@@ -183,7 +197,7 @@ function anghist(ad,ty)
     axis tight;
     set(gca,'ycolor', get(gca,'color'),'ytick',[],...
         'xtick',0:30:180,'layer','top','fontsize',...
-            18,'linewidth',2.,'ticklength',[.025,.025],...
+            14,'linewidth',2.,'ticklength',[.025,.025],...
                 'box','off','xlim',[0.,180.]) ;
     
     mina = max(1.000,min(ad)); %%!! so that axes don't obscure!
@@ -197,33 +211,33 @@ function anghist(ad,ty)
     if ( mina > 25.0)
         text(mina-1.8,.9*max(hc),num2str(min(ad),'%16.1f'),...
             'horizontalalignment',...
-                'right','fontsize',22) ;
+                'right','fontsize',16) ;
     else
         text(mina+1.8,.9*max(hc),num2str(min(ad),'%16.1f'),...
             'horizontalalignment',...
-                'left' ,'fontsize',22) ;
+                'left' ,'fontsize',16) ;
     end
     
     if ( maxa < 140.)
         text(maxa+1.8,.9*max(hc),num2str(max(ad),'%16.1f'),...
             'horizontalalignment',...
-                'left' ,'fontsize',22) ;    
+                'left' ,'fontsize',16) ;    
     else
         text(maxa-1.8,.9*max(hc),num2str(max(ad),'%16.1f'),...
             'horizontalalignment',...
-                'right','fontsize',22) ;     
+                'right','fontsize',16) ;     
     end
    
     switch (ty)
     case 'tria4'
         text(-9.0,0.0,'$\theta_{\tau}$',...
             'horizontalalignment','right',...
-                'fontsize',28,'interpreter','latex') ;
+                'fontsize',22,'interpreter','latex') ;
         
     case 'tria3'
         text(-9.0,0.0,'$\theta_{f}$',...
             'horizontalalignment','right',...
-                'fontsize',28,'interpreter','latex') ;
+                'fontsize',22,'interpreter','latex') ;
         
     end
     
@@ -267,7 +281,7 @@ function scrhist(sc,ty)
     axis tight;    
     set(gca,'ycolor', get(gca,'color'),'ytick',[],...
         'xtick',.0:.2:1.,'layer','top','fontsize',...
-            18,'linewidth',2.,'ticklength',[.025,.025],...
+            14,'linewidth',2.,'ticklength',[.025,.025],...
                 'box','off','xlim',[0.,1.]) ;
     
     mins = max(0.010,min(sc)); %%!! so that axes don't obscure!
@@ -281,26 +295,26 @@ function scrhist(sc,ty)
     if ( mins > .4)
         text(mins-.01,.9*max(hc),num2str(min(sc),'%16.3f'),...
             'horizontalalignment',...
-                'right','fontsize',22) ;
+                'right','fontsize',16) ;
     else
         text(mins+.01,.9*max(hc),num2str(min(sc),'%16.3f'),...
             'horizontalalignment',...
-                'left' ,'fontsize',22) ;
+                'left' ,'fontsize',16) ;
     end
     
     text(mean(sc)-.01,.9*max(hc),num2str(mean(sc),'%16.3f'),...
-        'horizontalalignment','right','fontsize',22) ;
+        'horizontalalignment','right','fontsize',16) ;
     
     switch (ty)
     case 'tria4'
         text(-.05,0.0,'$v_{\tau}$',...
             'horizontalalignment','right',...
-                'fontsize',28,'interpreter','latex') ;
+                'fontsize',22,'interpreter','latex') ;
         
     case 'tria3'
         text(-.05,0.0,'$a_{f}$',...
             'horizontalalignment','right',...
-                'fontsize',28,'interpreter','latex') ;
+                'fontsize',22,'interpreter','latex') ;
         
     end
     
@@ -335,17 +349,17 @@ function hfnhist(hf,ty)
     axis tight; 
     set(gca,'ycolor', get(gca,'color'),'ytick',[],...
         'xtick',.0:.5:2.,'layer','top','fontsize',...
-            18,'linewidth',2.,'ticklength',[.025,.025],...
+            14,'linewidth',2.,'ticklength',[.025,.025],...
                 'box','off','xlim',[0.,2.]);
     
     line([mean(hf),mean(hf)],...
         [0,max(hc)],'color','r','linewidth',1.5);
     
     text(mean(hf)+.02,.9*max(hc),num2str(mean(hf),'%16.2f'),...
-        'horizontalalignment','left','fontsize',22);
+        'horizontalalignment','left','fontsize',16);
     
     text(-0.100,0.0,'$h_{r}$','horizontalalignment','right',...
-        'fontsize',28,'interpreter','latex');
+        'fontsize',22,'interpreter','latex');
     
 end
 
