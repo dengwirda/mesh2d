@@ -17,7 +17,7 @@ function [vert,econ,tria] = cfmtri2(vert,econ)
 
 %   Darren Engwirda : 2017 --
 %   Email           : de2363@columbia.edu
-%   Last updated    : 01/07/2017
+%   Last updated    : 07/07/2017
 
 %---------------------------------------------- basic checks    
     if ( ~isnumeric(vert) || ...
@@ -31,6 +31,7 @@ function [vert,econ,tria] = cfmtri2(vert,econ)
         error('cfmtri2:incorrectDimensions' , ...
             'Incorrect input dimensions.');
     end
+    
     if (size(vert,2)~= +2 || size(econ,2)~= +2)
         error('cfmtri2:incorrectDimensions' , ...
             'Incorrect input dimensions.');
@@ -107,7 +108,11 @@ function [tria] = delaunay2(vert)
     %-- call QHULL and then filter zero-volume simplexes via
     %-- vectorised area comparisons.
     
-        tria = __delaunayn__ (vert) ;
+    %-- note silliness re. EVAL, so that MATLAB doesn't com-
+    %-- plain re. OCTAVE '__' names.
+    
+        tria = eval( ...
+          '__delaunayn__(vert)') ;
 
         ab = vert(tria(:,2),:) ...
            - vert(tria(:,1),:) ;
