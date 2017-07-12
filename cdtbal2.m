@@ -8,8 +8,8 @@ function [cc] = cdtbal2(pp,ee,tt)
 %   mation regarding the edge array EE.
 
 %   Darren Engwirda : 2017 --
-%   Email           : engwirda@mit.edu
-%   Last updated    : 14/01/2017
+%   Email           : de2363@columbia.edu
+%   Last updated    : 09/07/2017
 
 %---------------------------------------------- basic checks    
     if (~isnumeric(pp) || ~isnumeric(ee) || ...
@@ -50,29 +50,30 @@ function [cc] = minfac2(cc,pp,ee,tt,ni,nj,nk)
 %   xes associated with an edge to test. NK is the local in-
 %   dex of the opposite vertex.
 
+%------------------------------------------------ outer edge          
+    EF = ee(tt(:,ni+3),5) > +0 ;
+
 %------------------------------------------------ edge balls
-    bc = (pp(tt(:,ni),:)+pp(tt(:,nj),:))*.50 ;
+    bc = (pp(tt(EF,ni),:)+pp(tt(EF,nj),:))*.50;
     
 %------------------------------------------------ edge radii
-    br = sum((bc(:,1:2)-pp(tt(:,ni),:)).^2,2)...
-       + sum((bc(:,1:2)-pp(tt(:,nj),:)).^2,2);
+    br = sum((bc(:,1:2)-pp(tt(EF,ni),:)).^2,2)...
+       + sum((bc(:,1:2)-pp(tt(EF,nj),:)).^2,2);
     br = br * +0.5 ;
-    
-%------------------------------------------------ outer edge          
-    ei = tt(:,ni+3);
-    ok = ee(ei,5)>0;
               
 %------------------------------------------- enclosing radii
-    ll = sum((bc(:,1:2)-pp(tt(:,nk),:)).^2,2);
+    ll = sum((bc(:,1:2)-pp(tt(EF,nk),:)).^2,2);
     
 %------------------------------------------- replace if min.
-    ki = br >= ll & br <= cc(:,3) & ok;
+    bi = br >= ll ...
+       & br <= cc(EF,3) ;
+   ei = find(EF) ; 
+   ti = ei  (bi) ;
     
 %------------------------------------------- replace is min.
-    cc(ki,1:2) = bc(ki,:);
-    cc(ki,  3) = br(ki,:);
+    cc(ti,1:2) = bc(bi,:) ;
+    cc(ti,  3) = br(bi,:) ;
 
 end
-
 
 
