@@ -117,7 +117,7 @@ function [vert,conn,tria,tnum] = refine2(varargin)
 %-----------------------------------------------------------
 %   Darren Engwirda : 2017 --
 %   Email           : de2363@columbia.edu
-%   Last updated    : 02/07/2017
+%   Last updated    : 07/07/2017
 %-----------------------------------------------------------
     
     filename = mfilename('fullpath') ;
@@ -205,7 +205,7 @@ function [vert,conn,tria,tnum] = refine2(varargin)
         nadj = ...
             accumarray(eloc(:),1) ;
  
-        if ( mod(nadj,+2) ~= +0 )
+        if (any(mod(nadj,2) ~= 0) )
         error('refine2:nonmanifoldInputs', ...
             'Non-manifold PART detected.') ;
         end
@@ -228,17 +228,18 @@ function [vert,conn,tria,tnum] = refine2(varargin)
     vert = node ; tria = []; tnum = []; 
     conn = PSLG ; iter = +0;
 
-    vmin = min(vert,[],+1) ;    % inflate bbox for stability
-    vmax = max(vert,[],+1) ;
+    vmin = min(vert,[],1);      % inflate bbox for stability
+    vmax = max(vert,[],1);
     
     vdel = vmax - 1.*vmin;
     vmin = vmin - .5*vdel;
     vmax = vmax + .5*vdel;
 
-    vbox = [vmin(1), vmin(2)
-            vmax(1), vmin(2)
-            vmax(1), vmax(2)
-            vmin(1), vmax(2)
+    vbox = [
+        vmin(1), vmin(2)
+        vmax(1), vmin(2)
+        vmax(1), vmax(2)
+        vmin(1), vmax(2)
            ] ;
     vert = [vert ; vbox] ;
 
@@ -265,10 +266,11 @@ function [vert,conn,tria,tnum] = refine2(varargin)
 %-------------------------------- trim vert. - deflate bbox.
     keep = false(size(vert,1),1);
     keep(tria(:)) = true ;
+    keep(conn(:)) = true ;
   
     redo = zeros(size(vert,1),1);
-    redo(keep) = +1;
-    redo = cumsum(redo);
+    redo(keep) = ...
+        (+1:length(find(keep)))';
     
     conn = redo(conn);
     tria = redo(tria);
