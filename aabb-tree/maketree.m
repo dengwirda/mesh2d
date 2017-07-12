@@ -57,7 +57,7 @@ function [tr] = maketree(rp,varargin)
 
 %   Darren Engwirda : 2014 --
 %   Email           : de2363@columbia.edu
-%   Last updated    : 03/07/2017
+%   Last updated    : 07/07/2017
 
     tr.xx = []; tr.ii = []; tr.ll = {}; op = [];
     
@@ -158,7 +158,11 @@ function [tr] = maketree(rp,varargin)
     rv((1:nd)+nd*+1) = true ;
 
 %----------------------------------------- inflate rectangle
-    rd = rp(:,rv)-rp(:,lv);
+    r0 = min(rp(:,lv),[],1) ;
+    r1 = max(rp(:,rv),[],1) ;
+   
+    rd = repmat(r1-r0,ni,1) ;
+    
     rp(:,lv) = ...
     rp(:,lv) - rd * eps^.8;
     rp(:,rv) = ...
