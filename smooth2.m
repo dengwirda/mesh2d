@@ -30,6 +30,7 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
 %
 %   See also REFINE2, DRAWSCR, TRIDEMO
 
+%%!! todo
 %   [VERT,EDGE,TRIA,TNUM] = SMOOTH2(... ,HFUN,HARG)
 
 %   This routine is loosely based on the DISTMESH algorithm,
@@ -45,7 +46,7 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
 %-----------------------------------------------------------
 %   Darren Engwirda : 2017 --
 %   Email           : de2363@columbia.edu
-%   Last updated    : 05/07/2017
+%   Last updated    : 11/07/2017
 %-----------------------------------------------------------
     
     filename = mfilename('fullpath');
@@ -136,7 +137,8 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
         tsel = tnum == ppos ;
         tcur = tria(tsel,:) ;
         
-       [ecur,tcur] = tricon2(tcur) ;
+       [ecur,tcur] ...
+           = tricon2 (tcur) ;
     
         ebnd = ecur(:,4)==0 ;
     
@@ -148,37 +150,35 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
     end
 
 %---------------------------------------------- inflate bbox
-    vmin = min(vert,[],+1) ;
-    vmax = max(vert,[],+1) ;
+    vmin = min(vert,[],1);
+    vmax = max(vert,[],1);
     
     vdel = vmax - 1.*vmin;
     vmin = vmin - .5*vdel;
     vmax = vmax + .5*vdel;
 
-    vbox = [vmin(1), vmin(2)
-            vmax(1), vmin(2)
-            vmax(1), vmax(2)
-            vmin(1), vmax(2)
+    vbox = [
+        vmin(1), vmin(2)
+        vmax(1), vmin(2)
+        vmax(1), vmax(2)
+        vmin(1), vmax(2)
            ] ;
     vert = [vert ; vbox] ;
     
 %---------------------------------------------- DO MESH ITER
-    tcpu.full = +0. ;
-    tcpu.dtri = +0. ;
-    tcpu.tcon = +0. ;
-    tcpu.hfun = +0. ;
-    tcpu.iter = +0. ;
-    tcpu.undo = +0. ;
-
     tnow =  tic ;
-     
+
+    tcpu = struct('full',0.,'dtri',0., ...
+        'tcon',0.,'iter',0.,'undo',0., ...
+        'keep',0.) ;
+    
     for iter = +1 : opts.iter
  
     %------------------------------------------ inflate adj.
         ttic = tic ;
        
        [edge,tria] = tricon2(tria,conn) ;
-       
+  
         tcpu.tcon = ...
             tcpu.tcon + toc(ttic) ;
     
@@ -228,12 +228,10 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
             jpos = vert(edge(:,2),:) ...
                  +.67*[scal,scal].*evec;
             
-            scal = ...                      %-- nlin. weight
-               max(abs(scal).^.5,eps^.75); 
-           %scal = ...
-           %   max(abs(scal)    ,eps^.75);
-           %scal = ...
-           %   max(abs(scal).^2.,eps^.75);
+           %scal = ...                      %-- nlin. weight
+           %   max(abs(scal).^.5,eps^.75); 
+            scal = ...
+               max(abs(scal).^ 1,eps^.75);
             
         %-- sum contributions edge-to-vert        
             vnew = ...
@@ -266,7 +264,9 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
         nscr = ones(size(tria,1),1);
         btri = true(size(tria,1),1);
         
-        for undo = +1 : size(vert,1)
+        umax = + 8 ;
+        
+        for undo = +1 : umax
         
             nscr(btri) = triscr2( ...
                 vert,tria(btri,:)) ;
@@ -292,8 +292,13 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
                false(size(vert,1),1) ;
             bvrt(ivrt) = true;
             
-            bnew =  +.75 ^ undo ;
-            bold =  +1.0 - bnew ;
+            if (undo ~= umax)
+                bnew =  +.75 ^ undo ;
+                bold =  +1.0 - bnew ;
+            else
+                bnew =  +0.0 ;
+                bold =  +1.0 - bnew ;
+            end
             
             vert(bvrt,:) = ...
                 bold * vold(bvrt,:) ... 
@@ -304,6 +309,8 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
         
         end
     
+        oscr = nscr ;
+        
         tcpu.undo = ...
             tcpu.undo + toc(ttic) ;
     
@@ -318,40 +325,137 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
         
         hvrt = evalhfn(vert, ...
             edge,EMAT,hfun,harg) ;
-
+    
         hmid = hvrt(edge(:,1),:) ...
              + hvrt(edge(:,2),:) ;
         hmid = hmid * 0.5 ;
         scal = elen./hmid ;
-  
+
+        emid = vert(edge(:,1),:) ...
+             + vert(edge(:,2),:) ;
+        emid = emid * 0.5 ;  
+      
     %------------------------------------- |deg|-based prune
-        lmax = +sqrt(+2.) ;
-        lmin = +1. / lmax ;
+        ttic = tic ;
     
         keep = false(size(vert,1),1);
-        keep(vdeg>+4) = true;
-        
-        less = scal<=lmin ;
-        more = scal>=lmax ;
-        
-        less(edge(:,5)~=0) = false;
-        more(edge(:,5)~=0) = false;
-        
-        keep(edge(less,1)) = false;
-        
-        %%!! todo: refine large edges
-        
+        keep(vdeg>+4) = true ;
+    
         keep(conn(:)) = true ;
         keep(free(:)) = true ;
         
-    %------------------------------------- reindex vert/conn 
-        redo = zeros(size(vert,1),1);
-        redo(keep) = +1;
-        redo = cumsum(redo);
-        conn = redo  (conn);
+    %------------------------------------- 'density' control
+        lmax = +5. / +4.  ;
+        lmin = +1. / lmax ;
         
-        vert = vert(keep,:);
+        less = scal<=lmin ;
+    %%!!todo: refine large edges
         
+        vbnd = false(size(vert,1),1);
+        vbnd(conn(:,1)) = true ;
+        vbnd(conn(:,2)) = true ;
+        
+        ebad = vbnd(edge(:,1)) ...     %-- not at boundaries
+             | vbnd(edge(:,2)) ;
+        
+        less(ebad(:)) = false;
+              
+    %------------------------------------- force as disjoint
+        lidx = find (less) ;
+        
+        for lpos = 1 : length(lidx)
+            epos = lidx(lpos,1);
+            inod = edge(epos,1);
+            jnod = edge(epos,2);
+        %--------------------------------- if still disjoint
+            if (keep(inod) && ...
+                keep(jnod) )
+            
+            keep(inod) = false ;
+            keep(jnod) = false ;
+
+            else
+                
+            less(epos) = false ;
+            
+            end
+        end
+ 
+    %------------------------------------- reindex vert/tria
+        redo = ...
+            zeros(size(vert,1),1);
+        itop = ...
+            length(find(keep));
+        iend = ...
+            length(find(less));
+        
+        redo(keep) = (1:itop)';
+        
+        redo(edge(less,1)) = ...        %-- to new midpoints
+            (itop+1 : itop+iend)';
+        redo(edge(less,2)) = ...
+            (itop+1 : itop+iend)';
+        
+        vnew =[vert(keep,:) ; 
+               emid(less,:) ;
+              ] ;
+        tnew = redo(tria(:,1:3)) ;
+
+        ttmp = sort(tnew,2) ;           %-- filter collapsed
+        okay = all( ...
+            diff(ttmp,1,2)~=0,2) ;
+        okay = ...
+            okay & ttmp(:,1) > 0 ;
+        tnew = tnew(okay,:) ;
+
+    %------------------------------------- quality preserver
+        nscr = ...
+            triscr2  (vnew,tnew) ;
+
+        stol = +0.80 ;
+        
+        tbad = nscr < stol ...
+             & nscr < oscr(okay) ;
+    
+        vbad = ...
+            false(size(vnew,1),1);
+        vbad(tnew(tbad,:)) = true;
+             
+    %------------------------------------- filter edge merge
+        lidx = find (less) ;
+    
+        ebad = ...
+        vbad(redo(edge(lidx,1))) | ...
+        vbad(redo(edge(lidx,2))) ;
+        
+        less(lidx(ebad)) = false ;
+        
+        keep(edge(...
+        lidx(ebad),1:2)) =  true ;
+        
+    %------------------------------------- reindex vert/conn
+        redo = ...
+            zeros(size(vert,1),1);
+        itop = ...
+            length(find(keep));
+        iend = ...
+            length(find(less));
+        
+        redo(keep) = (1:itop)';
+        
+        redo(edge(less,1)) = ...
+            (itop+1 : itop+iend)';
+        redo(edge(less,2)) = ...
+            (itop+1 : itop+iend)';
+        
+        vert =[vert(keep,:);
+               emid(less,:);
+              ] ;    
+        conn = redo(conn(:,1:2)) ;
+        
+        tcpu.keep = ...
+            tcpu.keep + toc(ttic) ;
+          
     %------------------------------------- build current CDT
         ttic = tic ;
        
@@ -379,16 +483,17 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
         
     end
 
-    tria = tria(:,1:3) ;
+    tria = tria( :,1:3);
  
 %----------------------------------------- prune unused vert
     keep = false(size(vert,1),1);
     keep(tria(:)) = true ;
+    keep(conn(:)) = true ;
   
     redo = zeros(size(vert,1),1);
-    redo(keep) = +1;
-    redo = cumsum(redo);
-    
+    redo(keep) = ...
+        (+1:length(find(keep)))';
+
     conn = redo(conn);
     tria = redo(tria);
     
@@ -409,11 +514,11 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
         fprintf(1, ...
         ' TCON: %f \n', tcpu.tcon);
         fprintf(1, ...
-        ' HFUN: %f \n', tcpu.hfun);
-        fprintf(1, ...
         ' ITER: %f \n', tcpu.iter);
         fprintf(1, ...
         ' UNDO: %f \n', tcpu.undo);   
+        fprintf(1, ...
+        ' KEEP: %f \n', tcpu.keep);
         fprintf(1,'\n') ;
     end
     
