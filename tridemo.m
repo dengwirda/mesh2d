@@ -426,8 +426,11 @@ function demo4
     title(['MESH-OPT.: KIND=DELFRONT, |TRIA|=', ...
         num2str(size(tnew,1))]) ;
            
-    drawscr(vert,etri,tria,tnum);
-    drawscr(vnew,enew,tnew,tnum);
+    hvrt = trihfn2(vert,vlfs,tlfs,slfs,hlfs) ;
+    hnew = trihfn2(vnew,vlfs,tlfs,slfs,hlfs) ;
+    
+    drawscr(vert,etri,tria,tnum,hvrt) ;
+    drawscr(vnew,enew,tnew,tnum,hnew) ;
            
     drawnow;
     
@@ -817,7 +820,9 @@ function demo8
     hold on; axis image off;
     title('MESH-SIZE function.');
    
-    drawscr(vert,etri,tria,tnum);
+    hvrt = feval(hfun,vert) ;
+    
+    drawscr(vert,etri,tria,tnum,hvrt) ;
            
     drawnow;
         
