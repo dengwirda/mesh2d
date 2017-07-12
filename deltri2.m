@@ -1,5 +1,4 @@
-function [vert,conn,tria,tnum] = ...
-          deltri2(vert,conn,node,PSLG,part,kind)
+function [vert,conn,tria,tnum] = deltri2(varargin)
 %DELTRI2 compute a constrained 2-simplex Delaunay triangula-
 %tion in the two-dimensional plane.
 %   [VERT,CONN,TRIA,TNUM]=DELTRI2(VERT,CONN,NODE,PSLG,PART)
@@ -26,11 +25,20 @@ function [vert,conn,tria,tnum] = ...
 %   See also DELAUNAYTRIANGULATION, DELAUNAYTRI, DELAUNAYN
 
 %   Darren Engwirda : 2017 --
-%   Email           : engwirda@mit.edu
-%   Last updated    : 24/03/2017
+%   Email           : de2363@columbia.edu
+%   Last updated    : 10/07/2017
 
-    if (nargin<6), kind = 'constrained'; end
+    vert = []; conn = []; node = []; PSLG = [];
+    part = {}; kind = 'constrained'; 
 
+%---------------------------------------------- extract args
+    if (nargin>=+1), vert = varargin{1}; end
+    if (nargin>=+2), conn = varargin{2}; end
+    if (nargin>=+3), node = varargin{3}; end
+    if (nargin>=+4), PSLG = varargin{4}; end
+    if (nargin>=+5), part = varargin{5}; end
+    if (nargin>=+6), kind = varargin{6}; end
+    
 %---------------------------------------------- basic checks    
     if (~isnumeric(vert) || ~isnumeric(conn) || ...
         ~isnumeric(node) || ~isnumeric(PSLG) || ...
@@ -52,6 +60,14 @@ function [vert,conn,tria,tnum] = ...
             'Incorrect input dimensions.');
     end
     
+    if (min([conn(:)])<+1 || max([conn(:)])>nvrt)
+        error('deltri2:invalidInputs', ...
+            'Invalid CONN input array.') ;
+    end
+    
+%---------------------------------------------- basic checks
+    if (nargin >= +3)
+
     if (ndims(node) ~= +2 || ndims(PSLG) ~= +2)
         error('deltri2:incorrectDimensions' , ...
             'Incorrect input dimensions.');
@@ -60,12 +76,7 @@ function [vert,conn,tria,tnum] = ...
         error('deltri2:incorrectDimensions' , ...
             'Incorrect input dimensions.');
     end
-    
-%---------------------------------------------- basic checks
-    if (min([conn(:)])<+1 || max([conn(:)])>nvrt)
-        error('deltri2:invalidInputs', ...
-            'Invalid CONN input array.') ;
-    end
+
     if (min([PSLG(:)])<+1 || max([PSLG(:)])>nnod)
         error('deltri2:invalidInputs', ...
             'Invalid EDGE input array.') ;
@@ -79,7 +90,9 @@ function [vert,conn,tria,tnum] = ...
             'Invalid PART input array.') ;
     end
 
+    end
 
+%------------------------------------ compute Delaunay tria.
     switch (lower(kind))
     case 'constrained'
 
@@ -120,6 +133,8 @@ function [vert,conn,tria,tnum] = ...
 %------------------------------------ calc. "inside" status!    
     tnum = zeros(size(tria,+1),+1) ;
     
+    if (nargin >= +3)
+    
     tmid = vert(tria(:,1),:) ...
          + vert(tria(:,2),:) ...
          + vert(tria(:,3),:) ;
@@ -138,6 +153,8 @@ function [vert,conn,tria,tnum] = ...
 %------------------------------------ keep "interior" tria's  
     tria = tria(tnum>+0,:) ;
     tnum = tnum(tnum>+0,:) ;
+    
+    end
     
 %------------------------------------ flip for correct signs    
     area = triarea(vert,tria) ;
