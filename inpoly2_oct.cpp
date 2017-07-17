@@ -11,8 +11,8 @@
 #include <octave/oct.h>
 
 DEFUN_DLD (inpoly2_oct, args, ,
-"-- INPOLY2-OCT: low-level routine called by INPOLY2 to \n"
-"-- compute point-in-polygon queries.")
+  "-- INPOLY2-OCT: low-level routine called by INPOLY2 to \n"
+  "-- compute point-in-polygon queries.")
 {    
     octave_value_list rval;
     
