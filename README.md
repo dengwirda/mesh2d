@@ -1,15 +1,17 @@
 # `MESH2D: A MATLAB-based mesh generator`
 
-`MESH2D` is a simple `MATLAB` / `OCTAVE`-based Delaunay mesh-generator for two-dimensional geometries. It is designed to generate high-quality constrained Delaunay triangulations for general polygonal regions in the plane. `MESH2D` provides simple and yet effective implementations of "Delaunay-refinement" and "Frontal-Delaunay" triangulation techniques, in additional to "hill-climbing" type mesh-optimisation. Support for user-defined "mesh-spacing" functions and "multi-part" geometry definitions are provided, allowing varying levels of mesh-resolution to be specified within complex domains.
+`MESH2D` is a `MATLAB` / `OCTAVE`-based unstructured mesh-generator for two-dimensional polygonal geometries. `MESH2D` provides a range of simple, yet effective two-dimensional meshing algorithms, including a variation on the "classical" Delaunay refinement technique, a new "Frontal"-Delaunay refinement scheme, a non-linear mesh optimisation method, and auxiliary mesh and geometry pre- and post-processing facilities. 
 
-Algorithms implemented in `MESH2D` are "provably-good" - ensuring convergence, geometrical and topological correctness, and providing guarantees on worst-case element quality in all cases.
+Algorithms implemented in `MESH2D` are "provably-good" - ensuring convergence, geometrical and topological correctness, and providing guarantees on algorithm termination and worst-case element quality bounds. Support for user-defined "mesh-spacing" functions and "multi-part" geometry definitions is provided, allowing `MESH2D` to handle a wide range of complex domain types and user-defined constraints. `MESH2D` typically generates very high-quality output, appropriate for a variety of finite-volume and/or finite-element type numerical simulation.
 
 <p align="center">
   <img src = "../master/poly-data/lake-1-small.png"> &nbsp &nbsp &nbsp &nbsp
   <img src = "../master/poly-data/lake-2-small.png">
 </p>
 
-The `MESH2D` package has been around now for a while(!), having been first released in 2006 as an extension of the <a href="http://persson.berkeley.edu/distmesh/">`DISTMESH`</a> algorithm of Persson and Strang. `MESH2D-3.0.0` is a major re-release, representing a complete re-working of the code to (a) bring it up-to-date with more recent developments in meshing research, and (b) utilise the robust constrained Delaunay triangulation support now provided by `MATLAB`. `MESH2D-3.0.0` is essentially now a simplified version of my <a href="https://github.com/dengwirda/jigsaw-matlab/">`JIGSAW`</a> mesh-generation algorithm, providing an implementation of "provably-good" Delaunay-refinement and Frontal-Delaunay triangulation techniques.
+The `MESH2D` package has been around now for a while(!), having been first released in 2006 as an extension of the <a href="http://persson.berkeley.edu/distmesh/">`DISTMESH`</a> algorithm of Persson and Strang. 
+
+As of `MESH2D - 3.0.0`, the code has been completely rewritten, and is now essentially a simplified version of my <a href="https://github.com/dengwirda/jigsaw-matlab/">`JIGSAW`</a> mesh-generation algorithm, providing an implementation of "provably-good" Delaunay-refinement and Frontal-Delaunay triangulation techniques. 
 
 # `Starting Out`
 
