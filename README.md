@@ -31,7 +31,7 @@ tridemo( 9); % larger-scale problem, mesh refinement + optimisation.
 tridemo(10); % medium-scale problem, mesh refinement + optimisation. 
 ```
 
-For <a href="https://www.gnu.org/software/octave">`OCTAVE`</a> users, significant performance improvements can be achieved by compiling elements of the `MESH2D` library. Running `compile.m` within the `MESH2D` installation directory will complete the build process (note: a `-dev` installation of <a href="https://www.gnu.org/software/octave">`OCTAVE`</a> is required for `oct` file support).
+For <a href="https://www.gnu.org/software/octave">`OCTAVE`</a> users, performance improvements can be achieved by compiling elements of the `MESH2D` library. Running `compile.m` within the `MESH2D` installation directory will complete the build process (note: requires a `-dev` installation of <a href="https://www.gnu.org/software/octave">`OCTAVE`</a>).
 
 
 # `Attribution!`
