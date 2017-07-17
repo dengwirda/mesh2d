@@ -62,11 +62,7 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
     if (nargin>=+5), opts = varargin{5}; end
     
    [opts] = makeopt(opts) ;
-   
-   
-    opts.dbug = true;
-   
-   
+
 %---------------------------------------------- default TNUM
     if (isempty(tnum))
         tnum = ones(size(tria, 1), 1) ; 
