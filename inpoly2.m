@@ -28,9 +28,15 @@ function [stat] = inpoly2(varargin)
 %
 %   This implementation seeks to improve these bounds:
 %
-% * Binning the query points by y-value and determining can-
-%   didate edge intersection sets via bin overlap. This red-
-%   uces overall algorithmic complexity.
+% * Sorting the query points by y-value and determining can-
+%   didate edge intersection sets via binary-search. Given a
+%   configuration with N test points, M edges and an average 
+%   point-edge "overlap" of H, the overall complexity scales 
+%   like O(M*H + M*LOG(N) + N*LOG(N)), where O(N*LOG(N))
+%   operations are required for sorting, O(M*LOG(N)) operat-
+%   ions required for the set of binary-searches, and O(M*H) 
+%   operations required for the intersection tests, where H 
+%   is typically small on average, such that H << N. 
 %
 % * Carefully checking points against the bounding-box asso-
 %   ciated with each polygon edge. This minimises the number
@@ -39,7 +45,7 @@ function [stat] = inpoly2(varargin)
 
 %   Darren Engwirda : 2017 --
 %   Email           : de2363@columbia.edu
-%   Last updated    : 05/07/2017
+%   Last updated    : 17/07/2017
 
 %---------------------------------------------- extract args
     node = []; edge = []; vert = [];
@@ -84,146 +90,115 @@ function [stat] = inpoly2(varargin)
         error('inpoly2:invalidInputs', ...
             'Invalid EDGE input array.') ;
     end
-    
-    stat = false (nvrt,1) ;
-    
+
 %-------------- flip to ensure the y-axis is the "long" axis
-    ddxy = max(vert,[],1) - ...
-           min(vert,[],1) ;
+    vmin = min(vert,[],1);
+    vmax = max(vert,[],1);
+    ddxy = vmax - vmin ;
     
     if (ddxy(1) > ddxy(2))
-        vert = vert(:,[2,1]) ;
-        node = node(:,[2,1]) ;
+    vert = vert(:,[2,1]) ;
+    node = node(:,[2,1]) ;
     end
     
 %----------------------------------- sort points via y-value
-    swap = node(edge(:,2),2) ...
-         < node(edge(:,1),2) ;
+    swap = ...
+       node(edge(:,2),2) ...
+     < node(edge(:,1),2) ;
          
     edge(swap,[1,2]) = ...
-        edge(swap,[2,1]) ;
-     
-%----------------------------------- setup "bins" on y-value
-    ybin = ...
-      unique(node (:,2)) ;
-    
-    nbin = length (ybin) ;
+        edge(swap,[2,1]) ;    
+        
+   [~,ivec] = ...
+        sort(vert(:,+2)) ;
+    vert = vert (ivec,:) ;
 
-%----------------------------------- "bin" edges via y-value
-   [junk,bmin] = histc( ...
-        node(edge(:,1),2),ybin);
+    if (exist( ...
+        'OCTAVE_VERSION','builtin')  > +0)
+    
+    if (exist('inpoly2_oct','file') == +3)
         
-   [junk,bmax] = histc( ...
-        node(edge(:,2),2),ybin);
-    
-%----------------------------------- "bin" points on y-value
-   [junk,vmap] = ...
-        histc(vert( :,+2),ybin);
+    %-- delegate to the compiled version of the code if it's
+    %-- available
         
-   [vmap,vidx] = sort(vmap);
-   
-    vidx = vidx(vmap~=0) ;
-    vmap = vmap(vmap~=0) ;
+       [stat] = ...
+           inpoly2_oct(vert,node,edge) ;
     
-    if (isempty(vmap)), return ; end
+    else
    
-    iptr = find( diff(vmap)) ;
+    %-- otherwise, just call the native m-code version
    
-    nidx = length (vidx) ;
+       [stat] = ...
+           inpoly2_loc(vert,node,edge) ;
+   
+    end
+   
+    else
+        
+    %-- MATLAB's JIT is generally smart enough these days to
+    %-- run this efficiently
+        
+       [stat] = ...
+           inpoly2_loc(vert,node,edge) ;
+        
+    end
     
-    ibin = vmap([iptr;nidx]) ;
-   
-    vptr = zeros(nbin,2) ;
-    vptr(ibin,1) = [+1; iptr+1];
-    vptr(ibin,2) = [iptr; nidx];
- 
-%----------------------------------- do crossing-number test
-    isoctave = exist( ...
-        'OCTAVE_VERSION','builtin') > +0 ;
-    
+    stat(ivec) = stat ;
+
+end
+
+function [stat] = inpoly2_loc(vert,node,edge)
+%INPOLY2_LOC the local m-code version of the crossing-number
+%test. Loop over edges; do a binary-search for the first ve-
+%rtex that intersects with the edge y-range; do crossing-nu-
+%mber comparisons; break when the local y-range is exceeded.
+
+    nvrt = size (vert,1) ;
+    nnod = size (node,1) ;
+    nedg = size (edge,1) ;
+
+    stat = false(nvrt,1) ;
+
+%----------------------------------- loop over polygon edges
     for epos = +1 : size(edge,1)
+    
+        inod = edge(epos,1) ;
+        jnod = edge(epos,2) ;
+
+    %------------------------------- calc. edge bounding-box
+        yone = node(inod,2) ;
+        ytwo = node(jnod,2) ;
+        xone = node(inod,1) ;
+        xtwo = node(jnod,1) ;
         
-    %------------------------------- find intersecting boxes   
-        imin = bmin(epos);
-        imax = bmax(epos);
+        ydel = ytwo - yone;
+        xdel = xtwo - xone;
+
+        xmin = min(xone,xtwo) ;
+
+    %------------------------------- find VERT(IPOS,2)<=YONE
+        ilow = +1 ; iupp = nvrt ;
         
-        while (vptr(imin,1)==0 && imin < imax)
-            imin = imin+1;
-        end
-        
-        while (vptr(imax,1)==0 && imax > imin)
-            imax = imax-1;
-        end
-   
-        head = vptr(imin,1) ;
-        tail = vptr(imax,2) ;
-        
-        if (head==+0), continue ; end
-   
-        if (isoctave)
-        
-    %-- OCTAVE is *shockingly* bad at executing loops, so -- 
-    %-- even though it involves far more operations! -- call
-    %-- the vectorised version below.
+        while (ilow < iupp - 1)        
+            imid = ilow ...
+            + floor((iupp-ilow) / 2);
             
-        inod = edge(epos,1) ;
-        jnod = edge(epos,2) ;
+            if (vert(imid,2) < yone)
+                ilow = imid ;
+            else
+                iupp = imid ;
+            end           
+        end
 
-    %------------------------------- calc. edge bounding-box
-        yone = node(inod,2) ;
-        ytwo = node(jnod,2) ;
-        xone = node(inod,1) ;
-        xtwo = node(jnod,1) ;
-        
-        ydel = ytwo - yone;
-        xdel = xtwo - xone;
-     
     %------------------------------- calc. edge-intersection
-        vset = ...
-            vidx(head:tail) ;
+        for jpos = ilow+1 : nvrt
         
-        xpos = vert(vset,1) ;
-        ypos = vert(vset,2) ;
-    
-        cros = ypos >=yone  & ...
-               ypos < ytwo  & ...
-        ydel* (xpos - xone)<= ...
-        xdel* (ypos - yone) ;
-   
-        stat(vset(cros)) = ...
-            ~stat(vset(cros)) ;
-    
-        else
-
-    %-- MATLAB is actually pretty good at JIT-ing code these
-    %-- days, so use the asymptotically faster version based
-    %-- on the pre-computed ordering.
-        
-        inod = edge(epos,1) ;
-        jnod = edge(epos,2) ;
-
-    %------------------------------- calc. edge bounding-box
-        yone = node(inod,2) ;
-        ytwo = node(jnod,2) ;
-        xone = node(inod,1) ;
-        xtwo = node(jnod,1) ;
-        
-        ydel = ytwo - yone;
-        xdel = xtwo - xone;
-
-        xmin = min(xone,xtwo) ;        
-          
-    %------------------------------- calc. edge-intersection  
-        for kpos = head:tail
-        
-            jpos = vidx(kpos,1) ;            
             ypos = vert(jpos,2) ;
-            if (ypos >=yone && ...
-                ypos < ytwo )
+            if (ypos <  ytwo)
                 xpos = vert(jpos,1) ;
                 if (xpos >= xmin)
                     if ( ...
-                    ydel* (xpos-xone)<= ...
+                    ydel* (xpos-xone) < ...
                     xdel* (ypos-yone) )
                     
                     stat(jpos) = ...
@@ -233,16 +208,15 @@ function [stat] = inpoly2(varargin)
                     stat(jpos) = ...
                         ~stat(jpos) ;
                 end
+            else
+                break ;            % done -- due to the sort
             end
-            
+        
         end
-              
-        end
-            
+
     end
-         
- end
- 
- 
- 
- 
+
+end
+
+
+
