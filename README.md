@@ -11,7 +11,8 @@ Algorithms implemented in `MESH2D` are "provably-good" - ensuring convergence, g
 
 The `MESH2D` package has been around now for a while (!), having first been released around 2006 as an extension of the <a href="http://persson.berkeley.edu/distmesh/">`DISTMESH`</a> algorithm of Persson and Strang. 
 
-As of `MESH2D release 3.0.0`, the code has been completely rewritten, and is now essentially a simplified version of my <a href="https://github.com/dengwirda/jigsaw-matlab/">`JIGSAW`</a> mesh-generation algorithm (a `C++` code), and provides a straightforward and accessible implementation of "provably-good" Delaunay-refinement and Frontal-Delaunay triangulation techniques. 
+As of `MESH2D release 3.0.0`, the code has been completely rewritten, and is now essentially a simplified version of my <a href="https://github.com/dengwirda/jigsaw-matlab/">`JIGSAW`</a> mesh-generation algorithm (a `C++` code), providing a more straightforward and accessible implementation of "provably-good" Delaunay-refinement and Frontal-Delaunay triangulation techniques. 
+
 
 # `Starting Out`
 
@@ -31,6 +32,7 @@ tridemo(10); % medium-scale problem, mesh refinement + optimisation.
 ```
 
 For <a href="https://www.gnu.org/software/octave">`OCTAVE`</a> users, significant performance improvements can be achieved by compiling elements of the `MESH2D` library. Running `compile.m` within the `MESH2D` installation directory will complete the build process (note: a `-dev` installation of <a href="https://www.gnu.org/software/octave">`OCTAVE`</a> is required for `oct` file support).
+
 
 # `Attribution!`
 
