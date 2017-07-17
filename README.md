@@ -11,7 +11,7 @@ Algorithms implemented in `MESH2D` are "provably-good" - ensuring convergence, g
 
 The `MESH2D` package has been around now for a while (!), having first been released around 2006 as an extension of the <a href="http://persson.berkeley.edu/distmesh/">`DISTMESH`</a> algorithm of Persson and Strang. 
 
-As of `MESH2D release 3.0.0`, the code has been completely rewritten, and is now essentially a simplified version of my <a href="https://github.com/dengwirda/jigsaw-matlab/">`JIGSAW`</a> mesh-generation algorithm (a `C++` code), providing a more straightforward and accessible implementation of "provably-good" Delaunay-refinement and Frontal-Delaunay triangulation techniques. 
+As of `MESH2D release 3.0.0`, the code has been completely rewritten, and is now essentially a simplified version of my <a href="https://github.com/dengwirda/jigsaw-matlab/">`JIGSAW`</a> mesh-generation algorithm (a `C++` code), providing a more straightforward and accessible implementation of Delaunay-based triangulation and mesh optimisation techniques. 
 
 
 # `Starting Out`
