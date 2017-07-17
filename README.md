@@ -9,14 +9,14 @@ Algorithms implemented in `MESH2D` are "provably-good" - ensuring convergence, g
   <img src = "../master/poly-data/lake-2-small.png">
 </p>
 
-The `MESH2D` package has been around now for a while(!), having been first released in 2006 as an extension of the <a href="http://persson.berkeley.edu/distmesh/">`DISTMESH`</a> algorithm of Persson and Strang. 
+The `MESH2D` package has been around now for a while(!), having first been released around 2006 as an extension of the <a href="http://persson.berkeley.edu/distmesh/">`DISTMESH`</a> algorithm of Persson and Strang. 
 
-As of `MESH2D - 3.0.0`, the code has been completely rewritten, and is now essentially a simplified version of my <a href="https://github.com/dengwirda/jigsaw-matlab/">`JIGSAW`</a> mesh-generation algorithm, providing an implementation of "provably-good" Delaunay-refinement and Frontal-Delaunay triangulation techniques. 
+As of `MESH2D release 3.0.0`, the code has been completely rewritten, and is now essentially a simplified version of my <a href="https://github.com/dengwirda/jigsaw-matlab/">`JIGSAW`</a> mesh-generation algorithm (a `C++` code), and provides an easy-to-follow implementation of "provably-good" Delaunay-refinement and Frontal-Delaunay triangulation techniques. 
 
 # `Starting Out`
 
 After downloading and unzipping the current <a href="https://github.com/dengwirda/mesh2d/archive/master.zip">repository</a>, navigate to the installation directory within <a href="http://www.mathworks.com">`MATLAB`</a> / <a href="https://www.gnu.org/software/octave">`OCTAVE`</a> and run the set of examples contained in `tridemo.m`:
-````
+```
 tridemo( 0); % a very simple example to get everything started.
 tridemo( 1); % investigate the impact of the "radius-edge" threshold.
 tridemo( 2); % Frontal-Delaunay vs. Delaunay-refinement refinement.
@@ -28,7 +28,10 @@ tridemo( 7); % investigate the use of "quadtree"-type refinement.
 tridemo( 8); % explore use of custom, user-defined mesh-size functions.
 tridemo( 9); % larger-scale problem, mesh refinement + optimisation. 
 tridemo(10); % medium-scale problem, mesh refinement + optimisation. 
-````
+```
+
+For <a href="https://www.gnu.org/software/octave">`OCTAVE`</a> users, significant performance improvements can be achieved by compiling elements of the `MESH2D` library. Running `compile.m` within the `MESH2D` installation directory will complete the build process (note: a `-dev` installation of <a href="https://www.gnu.org/software/octave">`OCTAVE`</a> is required).
+
 # `Attribution!`
 
 If you make use of `MESH2D` please include a reference to the following! `MESH2D` is designed to provide a simple and easy-to-understand implementation of Delaunay-based mesh-generation techniques. For a much more advanced, and fully three-dimensional mesh-generation library, see the <a href="https://github.com/dengwirda/jigsaw-matlab/">`JIGSAW`</a> package. `MESH2D` makes use of the <a href="https://github.com/dengwirda/aabb-tree">`AABBTREE`</a> and <a href="https://github.com/dengwirda/find-tria">`FINDTRIA`</a> packages to compute efficient spatial queries and intersection tests. 
