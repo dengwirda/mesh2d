@@ -43,7 +43,7 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
 %-----------------------------------------------------------
 %   Darren Engwirda : 2017 --
 %   Email           : de2363@columbia.edu
-%   Last updated    : 17/07/2017
+%   Last updated    : 21/07/2017
 %-----------------------------------------------------------
     
     filename = mfilename('fullpath');
@@ -63,6 +63,16 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
     
    [opts] = makeopt(opts) ;
 
+%---------------------------------------------- default CONN
+    if (isempty(conn))
+      
+       [edge] = tricon2(tria);
+
+        ebnd = edge(:,4) < +1;              %-- use bnd edge
+        conn = edge(ebnd,1:2);
+        
+    end
+   
 %---------------------------------------------- default TNUM
     if (isempty(tnum))
         tnum = ones(size(tria, 1), 1) ; 
@@ -379,7 +389,7 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
         
         ebad = ...
            keep(edge(less,1)) ...
-         | keep(edge(less,2)) ;
+         & keep(edge(less,2)) ;
         
         more(ebad(:)) = false ;
          
