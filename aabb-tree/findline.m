@@ -37,7 +37,7 @@ function [lp,lj,tr] = findline(pa,pb,pp,varargin)
 %-----------------------------------------------------------
 %   Darren Engwirda : 2017 --
 %   Email           : de2363@columbia.edu
-%   Last updated    : 13/06/2017
+%   Last updated    : 02/08/2017
 %-----------------------------------------------------------
 
     lp = []; lj = []; tr = []; op = [];
@@ -146,7 +146,9 @@ function [ip,il] = linekern(pk,lk,pp,pa,pb,zt)
              sum(DD.*DD,2) ;
         tt = max(min(tt,+1.),-1.);
    
-        qq = mm + tt.*DD ;
+        nd = size(pp,2);
+   
+        qq = mm + repmat(tt,1,nd) .* DD;
         
         on = ...
         sum((pp(pk,:)-qq).^2,2) <= zt^2;
