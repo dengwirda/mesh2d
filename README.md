@@ -11,7 +11,7 @@ Algorithms implemented in `MESH2D` are "provably-good" - ensuring convergence, g
 
 `MESH2D` has undergone several transformations in its lifetime, having been first released in 2006 as an extension of the <a href="http://persson.berkeley.edu/distmesh/">`DISTMESH`</a> algorithm of Persson and Strang, before being updated in 2017 to its current form.
 
-As of `MESH2D release 3.0.0`, the code has been completely rewritten, and is now a simplified version of my <a href="https://github.com/dengwirda/jigsaw-matlab/">`JIGSAW`</a> mesh-generation algorithm (a `C++` code), providing a straightforward `MATLAB` / `OCTAVE` implementation of Delaunay-based triangulation and mesh optimisation techniques. 
+As of `MESH2D release 3.0.0`, the code has been completely rewritten, and is now a simplified version of my <a href="https://github.com/dengwirda/jigsaw-matlab/">`JIGSAW`</a> mesh-generation algorithm (a `C++` code). `MESH2D` aims to provide a straightforward `MATLAB` / `OCTAVE` implementation of high-quality Delaunay-based triangulation and mesh optimisation techniques. 
 
 
 # `Starting Out`
