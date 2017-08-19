@@ -117,7 +117,7 @@ function [vert,conn,tria,tnum] = refine2(varargin)
 %-----------------------------------------------------------
 %   Darren Engwirda : 2017 --
 %   Email           : de2363@columbia.edu
-%   Last updated    : 07/07/2017
+%   Last updated    : 19/08/2017
 %-----------------------------------------------------------
     
     filename = mfilename('fullpath') ;
@@ -252,7 +252,7 @@ function [vert,conn,tria,tnum] = refine2(varargin)
    [vert,conn,tria,tnum,iter] = ...
         cdtref1(vert,conn,tria,tnum, ...
             node,PSLG,part,opts,hfun,harg,iter);
-
+        
 %-------------------------------- PASS 2: refine 2-simplexes
    [vert,conn,tria,tnum,iter] = ...
         cdtref2(vert,conn,tria,tnum, ...
@@ -434,14 +434,13 @@ function [vert,conn,tria,tnum,iter] = ...
     tcpu.offc = +0. ;
     
     vidx = (1:size(vert,1))';     %- "new" vert list to test
-    cidx = (1:size(conn,1))';     %- "new" edge list to test
-
+    
     tnow =  tic ;
 
     ntol = +1.55;
 
     while  (true)
-    
+        
         iter = iter + 1 ;
     
         if (iter>=opts.iter),break; end
@@ -489,8 +488,8 @@ function [vert,conn,tria,tnum,iter] = ...
         bal1(:,3) = ...
             (1.-eps^.75) * bal1(:,3) ;
   
-       [vp,vi] = findball( ...
-            bal1(cidx,:),vert(:,1:2));
+       [vp,vi] = ...
+           findball(bal1,vert(:,1:2));
 
     %------------------------------------- near=>[vert,edge]
         next = +0;
@@ -498,7 +497,7 @@ function [vert,conn,tria,tnum,iter] = ...
         near = zeros(size(conn,1),1) ;
         for ii = +1 : size(vp,1)
             for ip = vp(ii,1):vp(ii,2)
-                jj = cidx(vi(ip));
+                jj = vi(ip);
                 if (ii ~= conn(jj,1) ...
                 &&  ii ~= conn(jj,2) )
                 next = next + 1;
@@ -565,9 +564,6 @@ function [vert,conn,tria,tnum,iter] = ...
                 conn( ref1,2), vidx];
         conn = [conn(~ref1,:); cnew];
         
-        cidx = (1:size(cnew,1))' ...
-          + length(find(~ref1));
-            
     %------------------------------------- update vertex set    
         vert = [vert; new1(:,1:2)];
         
@@ -681,9 +677,6 @@ function [vert,conn,tria,tnum,iter] = ...
 
         vidx = [zset; iset; jset] ;
         
-        cidx = (1:size(cnew,1))' ...
-            + length(find(~ref1)) ;
-
         tcpu.offc = ...
             tcpu.offc + toc(ttic) ;
                        
@@ -787,7 +780,7 @@ function [vert,conn,tria,tnum,iter] = ...
        
         tcpu.tcon = ...
             tcpu.tcon + toc(ttic) ;
-       
+        
         if (iter>=opts.iter),break; end
 
     %------------------------------------- calc. circumballs
