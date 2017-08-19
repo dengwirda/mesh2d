@@ -1,6 +1,6 @@
 # `MESH2D: A MATLAB-based mesh generator`
 
-`MESH2D` is a `MATLAB` / `OCTAVE`-based unstructured mesh-generator for two-dimensional polygonal geometries. `MESH2D` provides a range of relatively simple, yet effective two-dimensional meshing algorithms, including variations on the "classical" Delaunay refinement technique, a new "Frontal"-Delaunay refinement scheme, a non-linear mesh optimisation method, and auxiliary mesh and geometry pre- and post-processing facilities. 
+`MESH2D` is a `MATLAB` / `OCTAVE`-based unstructured mesh-generator for two-dimensional polygonal geometries, providing a range of relatively simple, yet effective two-dimensional meshing algorithms. `MESH2D` includes variations on the "classical" Delaunay refinement technique, a new "Frontal"-Delaunay refinement scheme, a non-linear mesh optimisation method, and auxiliary mesh and geometry pre- and post-processing facilities. 
 
 Algorithms implemented in `MESH2D` are "provably-good" - ensuring convergence, geometrical and topological correctness, and providing guarantees on algorithm termination and worst-case element quality bounds. Support for user-defined "mesh-spacing" functions and "multi-part" geometry definitions is also provided, allowing `MESH2D` to handle a wide range of complex domain types and user-defined constraints. `MESH2D` typically generates very high-quality output, appropriate for a variety of finite-volume and/or finite-element type applications.
 
@@ -11,7 +11,7 @@ Algorithms implemented in `MESH2D` are "provably-good" - ensuring convergence, g
 
 `MESH2D` has undergone several transformations in its lifetime, having been first released in 2006 as an extension of the <a href="http://persson.berkeley.edu/distmesh/">`DISTMESH`</a> algorithm of Persson and Strang, before being updated in 2017 to its current form.
 
-As of `MESH2D release 3.0.0`, the code has been completely rewritten, and is now a simplified version of my <a href="https://github.com/dengwirda/jigsaw-matlab/">`JIGSAW`</a> mesh-generation algorithm (a `C++` code). `MESH2D` aims to provide a straightforward `MATLAB` / `OCTAVE` implementation of high-quality Delaunay-based triangulation and mesh optimisation techniques. 
+As of `MESH2D release 3.0.0`, the code has been completely rewritten, and is now based on a simplified version of my <a href="https://github.com/dengwirda/jigsaw-matlab/">`JIGSAW`</a> mesh-generation algorithm (a `C++` code). `MESH2D` aims to provide a straightforward `MATLAB` / `OCTAVE` implementation of these Delaunay-based triangulation and mesh optimisation techniques. 
 
 
 # `Starting Out`
