@@ -14,7 +14,7 @@ function [ee,tt] = tricon2(varargin)
 
 %   Darren Engwirda : 2014 --
 %   Email           : de2363@columbia.edu
-%   Last updated    : 30/06/2017
+%   Last updated    : 01/10/2017
 
 %---------------------------------------------- extract args
     tt = []; cc = [];
@@ -135,20 +135,19 @@ function [ee,tt] = tricon2(varargin)
     if (isempty(cc)), return; end
     
 %------------------------------------ find constrained edges
-   %is = ismember( ...
-   %   ee(:,1:2),sort(cc,2),'rows');
+  %[ip,ip] = ismember( ...
+  %   ee(:,1:2),sort(cc,2),'rows');
    
 %-- as above, the 'ROWS' based call to ISMEMBER can be sped
 %-- up by casting the edge lists (i.e. pairs of UINT32 valu-
 %-- es) to DOUBLE, and performing the sorted queries on vec-
 %-- tor inputs!
     cc = sort(cc,2);
-    is = ismember(ed, cc*[2^31;+1]);
+   [ip,ip] = ismember(ed, cc*[2^31;+1]);
    
 %------------------------------------ mark constrained edges
-    ee(is, 5) = +1 ;
+    ee(:,5) = ip;
     
 end
-
 
 
