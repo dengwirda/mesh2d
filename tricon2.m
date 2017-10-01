@@ -6,7 +6,8 @@ function [ee,tt] = tricon2(varargin)
 %   T2,CE] is the set of unique 1-simplexes (edges) in the 
 %   mesh TT. Each row of {V1,V2} defines an edge, each row
 %   of {T1,T2} defines the two triangles adjacent to an edge 
-%   and CE is a "constraint" flag. TT = [V1,V2,V3,E1,E2,E3],
+%   and CE is a "constraint" flag, indicating which row in
+%   CC (if any) the edge matches. TT = [V1,V2,V3,E1,E2,E3],
 %   is the set of unique 2-simplexes in the mesh, where
 %   {E1,E2,E3} define the tria-to-edge mapping. Each row of 
 %   {E1,E2,E3} are the indicies of the three edges that make 
@@ -14,7 +15,7 @@ function [ee,tt] = tricon2(varargin)
 
 %   Darren Engwirda : 2014 --
 %   Email           : de2363@columbia.edu
-%   Last updated    : 30/06/2017
+%   Last updated    : 01/10/2017
 
 %---------------------------------------------- extract args
     tt = []; cc = [];
@@ -135,18 +136,18 @@ function [ee,tt] = tricon2(varargin)
     if (isempty(cc)), return; end
     
 %------------------------------------ find constrained edges
-   %is = ismember( ...
-   %   ee(:,1:2),sort(cc,2),'rows');
+  %[ip,ip] = ismember( ...
+  %   ee(:,1:2),sort(cc,2),'rows');
    
 %-- as above, the 'ROWS' based call to ISMEMBER can be sped
 %-- up by casting the edge lists (i.e. pairs of UINT32 valu-
 %-- es) to DOUBLE, and performing the sorted queries on vec-
 %-- tor inputs!
     cc = sort(cc,2);
-    is = ismember(ed, cc*[2^31;+1]);
+   [ip,ip] = ismember(ed, cc*[2^31;+1]);
    
 %------------------------------------ mark constrained edges
-    ee(is, 5) = +1 ;
+    ee(:,5) = ip;
     
 end
 

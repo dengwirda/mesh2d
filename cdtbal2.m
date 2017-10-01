@@ -9,7 +9,7 @@ function [cc] = cdtbal2(pp,ee,tt)
 
 %   Darren Engwirda : 2017 --
 %   Email           : de2363@columbia.edu
-%   Last updated    : 09/07/2017
+%   Last updated    : 01/10/2017
 
 %---------------------------------------------- basic checks    
     if (~isnumeric(pp) || ~isnumeric(ee) || ...
@@ -67,8 +67,8 @@ function [cc] = minfac2(cc,pp,ee,tt,ni,nj,nk)
 %------------------------------------------- replace if min.
     bi = br >= ll ...
        & br <= cc(EF,3) ;
-   ei = find(EF) ; 
-   ti = ei  (bi) ;
+    ei = find(EF) ; 
+    ti = ei  (bi) ;
     
 %------------------------------------------- replace is min.
     cc(ti,1:2) = bc(bi,:) ;

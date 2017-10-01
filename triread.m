@@ -22,8 +22,8 @@ function [vert,edge,tria,tnum] = triread(name)
 %   age: github.com/dengwirda/jigsaw-matlab.
 
 %   Darren Engwirda : 2017 --
-%   Email           : engwirda@mit.edu
-%   Last updated    : 23/01/2014
+%   Email           : de2363@columbia.edu
+%   Last updated    : 01/10/2017
 
     filename = mfilename('fullpath');
     filepath = fileparts( filename );
@@ -39,16 +39,19 @@ function [vert,edge,tria,tnum] = triread(name)
     end
 
 %----------------------------------- borrow JIGSAW I/O func!
-   [mesh] = readmsh(name) ;
+   [mesh] = loadmsh(name) ;
 
 %----------------------------------- extract data if present
-    if (meshhas(mesh,'point'))
+    if (isfield(mesh,'point') && ...
+        isfield(mesh.point,'coord'))
     vert = mesh.point.coord(:,1:2) ;    
     end
-    if (meshhas(mesh,'edge2'))
+    if (isfield(mesh,'edge2') && ...
+        isfield(mesh.edge2,'index'))
     edge = mesh.edge2.index(:,1:2) ;
     end
-    if (meshhas(mesh,'tria3'))
+    if (isfield(mesh,'tria3') && ...
+        isfield(mesh.tria3,'index'))
     tria = mesh.tria3.index(:,1:3) ;
     tnum = mesh.tria3.index(:,  4) ;
     end

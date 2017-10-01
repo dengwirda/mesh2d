@@ -19,7 +19,7 @@ function [node,PSLG,part] = bfsgeo2(node,PSLG,seed)
 %   complex, non-manifold geometry into a format that's app-
 %   ropriate for the triangulation algorithms in REFINE2. 
 %
-%   See also REFINE2, FIXGEO2
+%   See also REFINE2, FIXGEO2, BFSTRI2
 
 %-----------------------------------------------------------
 %   Darren Engwirda : 2017 --
@@ -112,60 +112,5 @@ function [node,PSLG,part] = bfsgeo2(node,PSLG,seed)
 
 end
 
-function [seen] = bfstri2(conn,tria,itri)
-%BFSTRI2 expand about a single seed triangle via BFS. The se-
-%arch terminates when constraining edges are encountered.
-%SEEN(II) is TRUE if the II-TH triangle is found in the curr-
-%ent expansion.
-
-%------------------------------------------ form adj. indices
-    ntri = size (tria,1);
-
-   [edge,tria] = tricon2 (tria,conn);
-
-    list = zeros(ntri,1);
-    nlst = 1 ;
-    list(nlst) = itri;
-
-%------------------------------------------ do BFS iterations
-    seen = false(ntri,1);
-
-    while (nlst >= +1)
-        
-    %-------------- pop tria from stack top
-        next = list(nlst);
-        nlst = nlst-1 ;    
-        seen(next) = true;
-    
-    %-------------- visit 1-ring neighbours
-        for eadj = +1 : +3
-        
-            epos = tria(next,eadj+3);
-
-        %---------- find adjacent triangles
-            if (edge(epos,5)==0)         
-            
-            if (next ~= edge(epos,3))
-                tadj  = edge(epos,3);
-            else
-                tadj  = edge(epos,4);
-            end         
-
-            if(~seen(tadj))
-                
-        %---------- add unvisited neighbour
-            seen(tadj) = true ;
-            nlst = nlst+1 ;
-            list(nlst) = tadj ;
-            
-            end
-                        
-            end
-                 
-        end
-        
-    end
-
-end
 
 
