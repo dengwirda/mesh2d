@@ -33,7 +33,7 @@ function [seen] = bfstri2(PSLG,tria,seed)
     
 %---------------------------------------------- extra checks   
     if ( ~isempty  (PSLG) )
-    if ( ~isnumeric(PSLG) || ...
+    if ( ~isnumeric(PSLG) )
         error('bfstri2:incorrectInputClass' , ...
             'Incorrect input class.') ;
     end
@@ -42,7 +42,7 @@ function [seen] = bfstri2(PSLG,tria,seed)
         error('bfstri2:incorrectDimensions' , ...
             'Incorrect input dimensions.');
     end  
-    if (size(PSLG,2)~= +3 )
+    if (size(PSLG,2)~= +2 )
         error('bfstri2:incorrectDimensions' , ...
             'Incorrect input dimensions.');
     end
