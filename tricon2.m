@@ -6,7 +6,8 @@ function [ee,tt] = tricon2(varargin)
 %   T2,CE] is the set of unique 1-simplexes (edges) in the 
 %   mesh TT. Each row of {V1,V2} defines an edge, each row
 %   of {T1,T2} defines the two triangles adjacent to an edge 
-%   and CE is a "constraint" flag. TT = [V1,V2,V3,E1,E2,E3],
+%   and CE is a "constraint" flag, indicating which row in
+%   CC (if any) the edge matches. TT = [V1,V2,V3,E1,E2,E3],
 %   is the set of unique 2-simplexes in the mesh, where
 %   {E1,E2,E3} define the tria-to-edge mapping. Each row of 
 %   {E1,E2,E3} are the indicies of the three edges that make 
@@ -149,5 +150,6 @@ function [ee,tt] = tricon2(varargin)
     ee(:,5) = ip;
     
 end
+
 
 
