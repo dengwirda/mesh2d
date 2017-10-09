@@ -24,7 +24,7 @@ function [qi,qp,qj] = queryset(tr,tm,fn,varargin)
 
 %   Darren Engwirda : 2017 --
 %   Email           : de2363@columbia.edu
-%   Last updated    : 05/07/2017
+%   Last updated    : 07/10/2017
 
     qi = []; qp = []; qj = [];
 
@@ -52,7 +52,7 @@ function [qi,qp,qj] = queryset(tr,tm,fn,varargin)
         ~isfield(tm,'ll') )
         error('queryset:incorrectAABBstruct', ...
             'Invalid aabb-maps obj.') ;
-    end        
+    end
 %---------------------------------- check existing aabb-tree
     if (~isfield(tr,'xx') || ...
         ~isfield(tr,'ii') || ...
@@ -62,23 +62,24 @@ function [qi,qp,qj] = queryset(tr,tm,fn,varargin)
     end
     
 %------------------------------ spatial query over tree-node
-    ic = cell(size(tm.ii,1),1);
-    jc = cell(size(tm.ii,1),1);
+    ic = cell(size(tm.ii,1),1) ;
+    jc = cell(size(tm.ii,1),1) ;
+    
     for ip = 1 : size(tm.ii,1)
-    %-------------------------- extract balls/verts per tile
+    %-------------------------- extract items/query per tile
         ni = tm.ii(ip,1) ;          % node (in tree)
         
     %-------------------------- do O(n*m) search within tile
-       [pj,ij] = feval(fn, ...
+       [qi,qj] = feval(fn, ...
             tm.ll{ip,1}, ...        % query in tile
             tr.ll{ni,1}, ...        % items in tile
             varargin {:} ) ;
         
     %-------------------------- push loc. item-query matches
-        ic{ip} = pj(:) ;
-        jc{ip} = ij(:) ;
+        ic{ip} = qi(:) ;
+        jc{ip} = qj(:) ;
     end
-
+    
 %-------------------------------- concat matches into arrays
     qi = vertcat(ic{:});
     qj = vertcat(jc{:});

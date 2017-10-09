@@ -57,7 +57,7 @@ function [tr] = maketree(rp,varargin)
 
 %   Darren Engwirda : 2014 --
 %   Email           : de2363@columbia.edu
-%   Last updated    : 07/07/2017
+%   Last updated    : 08/10/2017
 
     tr.xx = []; tr.ii = []; tr.ll = {}; op = [];
     
@@ -146,7 +146,8 @@ function [tr] = maketree(rp,varargin)
     ni = size(rp,1) ;
     
 %------------------------------------------ alloc. workspace
-    xx = zeros(ni*1,2*nd);
+    xl = zeros(ni*1,1*nd);
+    xr = zeros(ni*1,1*nd);
     ii = zeros(ni*1,2);
     ll = cell (ni*1,1);
     ss = zeros(ni*1,1);
@@ -180,8 +181,8 @@ function [tr] = maketree(rp,varargin)
     ii(1,1) = +0 ;
     ii(1,2) = +0 ;
 %------------------------------ root contains all rectangles
-    xx(1,lv) = min(rp(:,lv),[],1);
-    xx(1,rv) = max(rp(:,rv),[],1);
+    xl(1,:) = min(rp(:,lv),[],1);
+    xr(1,:) = max(rp(:,rv),[],1);
     
 %-- main loop : divide nodes until all constraints satisfied
     ss(+1) = +1; ns = +1; nn = +1;   
@@ -196,8 +197,8 @@ function [tr] = maketree(rp,varargin)
     %--------------------------- set of rectangles in parent
         li = ll{ni} ;    
     %--------------------------- split plane on longest axis
-        dd = xx(ni,rv) ...
-           - xx(ni,lv) ;
+        dd = xr(ni,:) ...
+           - xl(ni,:) ;
        [dd,ia] = sort(dd);
   
         for id = nd : -1 : +1
@@ -240,24 +241,24 @@ function [tr] = maketree(rp,varargin)
         end
         
     %-------------------------------- finalise node position
-        xx(n1,lv) = ...
+        xl(n1,:) = ...
             min(rp(l1,lv),[],1) ;
-        xx(n1,rv) = ...
+        xr(n1,:) = ...
             max(rp(l1,rv),[],1) ;
-        xx(n2,lv) = ...
+        xl(n2,:) = ...
             min(rp(l2,lv),[],1) ;
-        xx(n2,rv) = ...
+        xr(n2,:) = ...
             max(rp(l2,rv),[],1) ;
             
     %--------------------------- push child nodes onto stack        
-        if (length(ll{ni}) <= op.nobj)
+        if (length(li) <= op.nobj )
         
-            vi = prod(xx(ni,rv) ... % upper d-dim "vol."
-                    - xx(ni,lv) ) ;
-            v1 = prod(xx(n1,rv) ... % lower d-dim "vol."
-                    - xx(n1,lv) ) ; 
-            v2 = prod(xx(n2,rv) ...
-                    - xx(n2,lv) ) ;
+            vi = prod(xr(ni,:) ...  % upper d-dim "vol."
+                    - xl(ni,:) ) ;
+            v1 = prod(xr(n1,:) ...  % lower d-dim "vol."
+                    - xl(n1,:) ) ; 
+            v2 = prod(xr(n2,:) ...
+                    - xl(n2,:) ) ;
         
             if (v1+v2 < op.vtol*vi)
                
@@ -296,12 +297,13 @@ function [tr] = maketree(rp,varargin)
         
     end
 %----------------------------------------------- trim alloc.
-    xx = xx(1:nn,:);
-    ii = ii(1:nn,:);
-    ll(nn+1:end) = [] ;
+    xl = xl(1:nn,:) ;
+    xr = xr(1:nn,:) ;
+    ii = ii(1:nn,:) ;
+    ll = ll(1:nn,:) ;
     
 %----------------------------------------------- pack struct
-    tr.xx = xx ; 
+    tr.xx =[xl, xr] ;     
     tr.ii = ii ; 
     tr.ll = ll ;
     
