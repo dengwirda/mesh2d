@@ -18,7 +18,7 @@ function [node,edge] = getnan2(varargin)
 %-----------------------------------------------------------
 %   Darren Engwirda : 2017 --
 %   Email           : de2363@columbia.edu
-%   Last updated    : 01/10/2017
+%   Last updated    : 06/10/2017
 %-----------------------------------------------------------
 
     data = [] ; filt = +0. ;
@@ -56,9 +56,10 @@ function [node,edge] = getnan2(varargin)
     nvec = [nvec ; size(data,1) ] ;
     end
   
-    node = [] ;
-    edge = [] ;
-    next = +1 ;
+    node = zeros(size(data,1), 2) ;
+    edge = zeros(size(data,1), 2) ;
+    
+    next = +1; nout = +1; eout = +1 ;
     
     for npos = +1 : length(nvec)
         
@@ -71,24 +72,36 @@ function [node,edge] = getnan2(varargin)
         
         pdel = pmax-pmin;
         
-        if any(pdel>filt)
-        
-        nold = size(node,1);
+        if (~isempty(pnew))
+        if (any(pdel>filt))            
+%---------------------------------- push polygon onto output            
         nnew = size(pnew,1);
         
         enew = [(1:nnew-1)', ...
                 (2:nnew-0)'; ...
                 nnew, +1 ] ;
-        enew = enew + nold ;
+        enew = enew+nout-1 ;
         
-        node = [node; pnew];
-        edge = [edge; enew];
+        mnew = size(enew,1);
         
+        pvec = nout:nout+nnew-1;
+        evec = eout:eout+mnew-1;
+        
+        node(pvec,:) = pnew;
+        edge(evec,:) = enew;
+
+        nout = nout + nnew ;
+        eout = eout + mnew ;
+        
+        end
         end
         
         next = stop + 1 ;
         
     end
+
+    node = node(+1:nout-1,:) ;
+    edge = edge(+1:eout-1,:) ;
     
 end
 

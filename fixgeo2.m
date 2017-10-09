@@ -9,12 +9,12 @@ function [node,PSLG,part] = fixgeo2(varargin)
 %   (3) edges are split about intersecting nodes.
 %   (4) edges are split about intersecting edges. 
 %
-%   See also REFINE2
+%   See also REFINE2, BFSGEO2
 
 %-----------------------------------------------------------
 %   Darren Engwirda : 2017 --
 %   Email           : de2363@columbia.edu
-%   Last updated    : 13/06/2017
+%   Last updated    : 07/10/2017
 %-----------------------------------------------------------
     
     filename = mfilename('fullpath') ;
@@ -88,19 +88,29 @@ function [node,PSLG,part] = fixgeo2(varargin)
     %--------------------------------- prune redundant nodes
        [node,PSLG,part] = ...
             prunenode(node,PSLG,part) ;
-
+        
     %--------------------------------- prune redundant edges
        [node,PSLG,part] = ...
             pruneedge(node,PSLG,part) ;
 
     %--------------------------------- node//edge intersect!
-       [node,PSLG,part] = ...
+        done = false;
+        while (~done)
+    
+       [node,PSLG,part,done] = ...
             splitnode(node,PSLG,part) ;
-            
+        
+        end
+        
     %--------------------------------- edge//edge intersect!
-       [node,PSLG,part] = ...
+        done = false;
+        while (~done)
+    
+       [node,PSLG,part,done] = ...
             splitedge(node,PSLG,part) ;
 
+        end
+        
         if (size(node,1) == nnum && ...
             size(PSLG,1) == enum ) 
     %--------------------------------- iterate if any change
@@ -111,9 +121,12 @@ function [node,PSLG,part] = fixgeo2(varargin)
         
 end
 
-function [node,PSLG,part] = prunenode(node,PSLG,part)
+function [node,PSLG,part,done] ...
+            = prunenode(node,PSLG,part)
 %PRUNENODE "prune" redundant nodes by "zipping" those within
 %tolerance of each other.
+
+    done = true ;
 
 %------------------------------------- calc. "zip" tolerance
     nmin = min(node,[],+1) ;
@@ -145,9 +158,11 @@ function [node,PSLG,part] = prunenode(node,PSLG,part)
                 izip(jj) == 0 && ...
                 ii~= jj  )
  
+            done =  false ;
+            
         %----------------------------- "zip" node JJ into II
             izip(jj) = ii ;
-            
+  
             end 
         end
     end
@@ -206,8 +221,11 @@ function [node,PSLG,part] = pruneedge(node,PSLG,part)
 
 end
     
-function [node,PSLG,part] = splitnode(node,PSLG,part)
+function [node,PSLG,part,done] ...
+            = splitnode(node,PSLG,part)
 %SPLITNODE "split" PSLG about intersecting nodes.
+
+    done = true ;
 
     mark = false(size(PSLG,1),1); 
     ediv = zeros(size(PSLG,1),1);
@@ -228,10 +246,12 @@ function [node,PSLG,part] = splitnode(node,PSLG,part)
             if (ni~=ii && ...
                 nj~=ii && ~mark(jj))
 
+            done = false;
+            
         %----------------------------- mark seen, descendent
             mark(jj) = true ;
             
-            nn = nn + 1;
+            nn = nn + 1 ;
             
             pair(nn,1) = jj ;
             pair(nn,2) = ii ;
@@ -271,10 +291,13 @@ function [node,PSLG,part] = splitnode(node,PSLG,part)
  
 end
 
-function [node,PSLG,part] = splitedge(node,PSLG,part)
+function [node,PSLG,part,done] ...
+            = splitedge(node,PSLG,part)
 %SPLITEDGE "split" PSLG about intersecting edges.
 
-    mark = false(size(PSLG,1),1); 
+    done = true ;
+
+    mark = zeros(size(PSLG,1),2); 
     pair = zeros(size(PSLG,1),2); 
     ediv = zeros(size(PSLG,1),1);
     flag = zeros(size(node,1),1);
@@ -288,25 +311,29 @@ function [node,PSLG,part] = splitedge(node,PSLG,part)
     
 %------------------------------------- edge//edge splitting!
     nn = +0 ;
-    for ii = +1:+1:size(lp,1)
+%---------------------------------- parse NaN delimited data
+    for ii = +1 : +1 : size(lp,1)
         
-        flag(PSLG(ii,1)) = ii;
-        flag(PSLG(ii,2)) = ii;
+        flag(PSLG(ii,1)) = ii ;
+        flag(PSLG(ii,2)) = ii ;
         
         for ip = lp(ii,1) : lp(ii,2)
             jj = li(ip) ;
-            if (~mark(ii) && ...
-                ~mark(jj) && ii~=jj)
+            if (mark(ii) == +0 && ...
+                mark(jj) == +0 && ...
+                ii ~= jj)
 
-                ni = PSLG(jj,1);
-                nj = PSLG(jj,2);
+                ni = PSLG(jj,1) ;
+                nj = PSLG(jj,2) ;
 
                 if (flag(ni) ~= ii && ...
                     flag(nj) ~= ii )
 
+                    done = false;
+                
             %------------------------- mark seen, edge-pairs
-                    mark(ii) = true ;
-                    mark(jj) = true ;
+                    mark(ii)   = +1 ;
+                    mark(jj)   = +1 ;
             
                     nn = nn + 1 ;
 
@@ -323,14 +350,14 @@ function [node,PSLG,part] = splitedge(node,PSLG,part)
     if (nn == +0), return ; end
     
 %------------------------------------- re-index intersection
-    pair = pair(1:nn,:);
+    pair = pair(1:nn,:) ;
     
    [okay,ppos,qpos] = linenear ( ...
     node(PSLG(pair(:,1),1),1:2), ...
     node(PSLG(pair(:,1),2),1:2), ...
     node(PSLG(pair(:,2),1),1:2), ...
     node(PSLG(pair(:,2),2),1:2)) ;
-    
+
     inod = PSLG(pair(:,1),1);
     jnod = PSLG(pair(:,1),2);
     
@@ -340,9 +367,9 @@ function [node,PSLG,part] = splitedge(node,PSLG,part)
     xnod = (+1:nn)'+size(node,1) ;
     
     iedg = (+1:nn)'+size(PSLG,1) ...
-                + 0*size(pair,1) ;
+              + 0 * size(pair,1) ;
     jedg = (+1:nn)'+size(PSLG,1) ...
-                + 1*size(pair,1) ;
+              + 1 * size(pair,1) ;
     
     ediv(pair(:,1),1) = iedg;
     ediv(pair(:,2),1) = jedg;
