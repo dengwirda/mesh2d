@@ -37,7 +37,7 @@ function [lp,lj,tr] = lineline(pa,pb,pc,pd,varargin)
 %-----------------------------------------------------------
 %   Darren Engwirda : 2017 --
 %   Email           : de2363@columbia.edu
-%   Last updated    : 13/06/2017
+%   Last updated    : 10/10/2017
 %-----------------------------------------------------------
 
     lp = []; lj = []; tr = []; op = [];
@@ -113,15 +113,9 @@ function [lp,lj,tr] = lineline(pa,pb,pc,pd,varargin)
     end        
     tm = maprect (tr,ab) ;
     
-%------------------------------ compute intersection rel-tol 
-    p0 = min([pa; pb],[],+1) ;
-    p1 = max([pa; pb],[],+1) ;
-    
-    zt = max(p1-p0) * eps^.8 ;
-    
 %------------------------------ compute line-to-line queries
    [li,ip,lj] = queryset( ...
-    tr,tm,@linekern,pa,pb,pc,pd,zt) ;
+    tr,tm,@linekern,pc,pd,pa,pb) ;
     
 %------------------------------ re-index onto full obj. list  
     lp = zeros(size(pc,1),2) ;
@@ -133,7 +127,7 @@ function [lp,lj,tr] = lineline(pa,pb,pc,pd,varargin)
     
 end
 
-function [i1,i2] = linekern(l1,l2,pa,pb,pc,pd,zt)
+function [i1,i2] = linekern(l1,l2,pa,pb,pc,pd)
 %LINEKERN d-dim. line//line intersection kernel routine.
 
         m1 = length(l1) ;
@@ -148,13 +142,17 @@ function [i1,i2] = linekern(l1,l2,pa,pb,pc,pd,zt)
         l2 = l2(:);
   
     %-------------------------- compute O(n*m) intersections
-       [ok,pp,qq] = linenear( ...
+       [ok,tp,tq] = linenear( ...
            pa(l1,:),pb(l1,:), ...
            pc(l2,:),pd(l2,:)) ;
     
-        ix = ...
-        sum((pp-qq).^2,2)<=zt^2 ;
-    
+        rt = +1.+eps;
+       
+        ix = abs(tp) <= +rt & ...
+             abs(tq) <= +rt ;
+       
+        ix(~ok) = false ;
+         
         i1 = l1(ix) ; 
         i2 = l2(ix) ;
     
