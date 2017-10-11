@@ -24,10 +24,13 @@ function [node,PSLG,part] = bfsgeo2(node,PSLG,seed)
 %-----------------------------------------------------------
 %   Darren Engwirda : 2017 --
 %   Email           : de2363@columbia.edu
-%   Last updated    : 11/07/2017
+%   Last updated    : 11/10/2017
 %-----------------------------------------------------------
-  
-    part = {};
+
+    filename = mfilename('fullpath') ;
+    filepath = fileparts( filename ) ;
+    
+    addpath([filepath,'/aabb-tree']) ;
 
 %---------------------------------------------- basic checks    
     if ( ~isnumeric(node) || ...
@@ -73,6 +76,8 @@ function [node,PSLG,part] = bfsgeo2(node,PSLG,seed)
     itri = stri(sptr(okay,1));
 
 %------------------------------------------ PART for all seed
+    part = {} ;
+
     for ipos = +1 : size (itri,1)
 
     %-------------- BFS about current tria.
