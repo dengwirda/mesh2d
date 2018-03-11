@@ -5,7 +5,7 @@ function drawtree(tr,varargin)
 %   See also MAKETREE
 
 %   Darren Engwirda : 2014 --
-%   Email           : engwirda@mit.edu
+%   Email           : darren.engwirda@columbia.edu
 %   Last updated    : 18/12/2014
 
 %---------------------------------------------- basic checks

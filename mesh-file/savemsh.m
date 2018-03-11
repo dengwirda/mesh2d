@@ -13,6 +13,9 @@ function savemsh(name,mesh)
 %       where ND is the number of spatial dimenions. 
 %       COORD(K,ND+1) is an ID tag for the K-TH point.
 %
+%   MESH.POINT.POWER - [NPx 1] array of vertex "weights", 
+%       associated with the dual "power" tessellation.
+%
 %   MESH.EDGE2.INDEX - [N2x 3] array of indexing for EDGE-2 
 %       elements, where INDEX(K,1:2) is an array of 
 %       "point-indices" associated with the K-TH edge, and 
@@ -78,9 +81,9 @@ function savemsh(name,mesh)
 
 %-----------------------------------------------------------
 %   Darren Engwirda
-%   github.com/dengwirda/jigsaw-geo-matlab
-%   14-Sep-2017
-%   de2363@columbia.edu
+%   github.com/dengwirda/jigsaw/
+%   03-Dec-2017
+%   darren.engwirda@columbia.edu
 %-----------------------------------------------------------
 %
 
@@ -102,7 +105,7 @@ function savemsh(name,mesh)
     
     ffid = fopen(name, 'w') ;
     
-    nver = +2;
+    nver = +3;
     
     if (exist('OCTAVE_VERSION','builtin')  > 0)
     fprintf(ffid,[ ...
@@ -191,6 +194,35 @@ function save_euclidean_mesh(ffid,nver,mesh)
  
     end
     
+    if (isfield(mesh,'point') && ...
+            isfield(mesh.point,'power') && ...
+                ~isempty(mesh.point.power) )
+    
+%-- write "POWER" data
+        
+    if (~isnumeric(mesh.point.power))
+        error('Incorrect input types');
+    end
+    if (ndims(mesh.point.power) ~= 2)
+        error('Incorrect dimensions!');
+    end
+        
+    npwr = size(mesh.point.power,2) - 0 ;
+    nrow = size(mesh.point.power,1) - 0 ;    
+        
+    if (isa(mesh.point.power,'double')) 
+    vstr = sprintf('%%1.%ug;',+16) ;
+    else
+    vstr = sprintf('%%1.%ug;',+ 8) ;
+    end
+    vstr = repmat(vstr,+1,npwr) ;
+    
+    fprintf(ffid,['POWER=%u;%u','\n'],[nrow,npwr]);    
+    fprintf(ffid, ...
+        [vstr(+1:end-1), '\n'], mesh.point.power');
+ 
+    end
+    
     if (isfield(mesh,'value'))
     
 %-- write "VALUE" data
@@ -242,7 +274,8 @@ function save_euclidean_mesh(ffid,nver,mesh)
     index(:,1:2) = index(:,1:2)-1 ; % file is zero-indexed!
        
     fprintf(ffid,['EDGE2=%u','\n'],size(index,1));        
-    fprintf(ffid,[repmat('%u;',1,2),'%i','\n'],index');
+    fprintf( ...
+       ffid,[repmat('%u;',1,2),'%i','\n'],index');
 
     end
     
@@ -268,7 +301,8 @@ function save_euclidean_mesh(ffid,nver,mesh)
     index(:,1:3) = index(:,1:3)-1 ; % file is zero-indexed!
        
     fprintf(ffid,['TRIA3=%u','\n'],size(index,1));        
-    fprintf(ffid,[repmat('%u;',1,3),'%i','\n'],index');
+    fprintf( ...
+       ffid,[repmat('%u;',1,3),'%i','\n'],index');
    
     end
     
@@ -294,7 +328,8 @@ function save_euclidean_mesh(ffid,nver,mesh)
     index(:,1:4) = index(:,1:4)-1 ; % file is zero-indexed!
        
     fprintf(ffid,['QUAD4=%u','\n'],size(index,1));        
-    fprintf(ffid,[repmat('%u;',1,4),'%i','\n'],index');
+    fprintf( ...
+       ffid,[repmat('%u;',1,4),'%i','\n'],index');
 
     end
     
@@ -320,7 +355,8 @@ function save_euclidean_mesh(ffid,nver,mesh)
     index(:,1:4) = index(:,1:4)-1 ; % file is zero-indexed!
        
     fprintf(ffid,['TRIA4=%u','\n'],size(index,1));        
-    fprintf(ffid,[repmat('%u;',1,4),'%i','\n'],index');
+    fprintf( ...
+       ffid,[repmat('%u;',1,4),'%i','\n'],index');
 
     end
     
@@ -346,7 +382,8 @@ function save_euclidean_mesh(ffid,nver,mesh)
     index(:,1:8) = index(:,1:8)-1 ; % file is zero-indexed!
        
     fprintf(ffid,['HEXA8=%u','\n'],size(index,1));        
-    fprintf(ffid,[repmat('%u;',1,8),'%i','\n'],index');
+    fprintf( ...
+       ffid,[repmat('%u;',1,8),'%i','\n'],index');
 
     end
     
@@ -372,7 +409,8 @@ function save_euclidean_mesh(ffid,nver,mesh)
     index(:,1:6) = index(:,1:6)-1 ; % file is zero-indexed!
        
     fprintf(ffid,['WEDG6=%u','\n'],size(index,1));        
-    fprintf(ffid,[repmat('%u;',1,6),'%i','\n'],index');
+    fprintf( ...
+       ffid,[repmat('%u;',1,6),'%i','\n'],index');
 
     end
     
@@ -398,7 +436,8 @@ function save_euclidean_mesh(ffid,nver,mesh)
     index(:,1:5) = index(:,1:5)-1 ; % file is zero-indexed!
        
     fprintf(ffid,['PYRA5=%u','\n'],size(index,1));        
-    fprintf(ffid,[repmat('%u;',1,6),'%i','\n'],index');
+    fprintf( ...
+       ffid,[repmat('%u;',1,6),'%i','\n'],index');
 
     end
     

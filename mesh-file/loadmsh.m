@@ -13,6 +13,9 @@ function [mesh] = loadmsh(name)
 %       where ND is the number of spatial dimenions. 
 %       COORD(K,ND+1) is an ID tag for the K-TH point.
 %
+%   MESH.POINT.POWER - [NPx 1] array of vertex "weights", 
+%       associated with the dual "power" tessellation.
+%
 %   MESH.EDGE2.INDEX - [N2x 3] array of indexing for EDGE-2 
 %       elements, where INDEX(K,1:2) is an array of 
 %       "point-indices" associated with the K-TH edge, and 
@@ -77,9 +80,9 @@ function [mesh] = loadmsh(name)
 
 %-----------------------------------------------------------
 %   Darren Engwirda
-%   github.com/dengwirda/jigsaw-geo-matlab
-%   27-Sep-2017
-%   de2363@columbia.edu
+%   github.com/dengwirda/jigsaw/
+%   11-Nov-2017
+%   darren.engwirda@columbia.edu
 %-----------------------------------------------------------
 %
 
@@ -153,7 +156,7 @@ function [mesh] = loadmsh(name)
                     data(3:4:end), ...
                     data(4:4:end)] ;
                 end
-
+                
             case 'coord'
 
         %-- read "coord" data
@@ -340,6 +343,32 @@ function [mesh] = loadmsh(name)
                 
                 mesh.value(:,vpos) = ...
                     data(vpos:vnum:end) ;
+
+                end
+               
+            case 'power'
+
+        %-- read "POWER" data
+
+                stag = regexp(tstr{2},';','split');
+                
+                nnum = str2double(stag{1}) ;
+                pnum = str2double(stag{2}) ;
+               
+                numr = nnum * (pnum+0) ;
+                
+                fstr = repmat(real,1,pnum) ;
+                
+                data = fscanf( ...
+                  ffid,fstr(1:end-1),numr) ;
+                
+                mesh.point.power = ...
+                    zeros(nnum, pnum) ;
+                
+                for ppos = +1 : pnum
+                
+                mesh.point.power(:,ppos) = ...
+                    data(ppos:pnum:end) ;
 
                 end
                 
