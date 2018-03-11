@@ -114,13 +114,6 @@ function [tp,tj,tr] = findtria(pp,tt,pj,varargin)
         end
         bb = [bi,bj];
     
-%------------------------------ compute aabb-tree for aabb's
-        if (isempty(op))            % scale against |pj|
-            op.nobj = ceil(size(tt,1) / ...
-                           size(pj,1)) * +4 ;                   
-            op.nobj = max( +32,op.nobj) ;  
-            op.nobj = min(+256,op.nobj) ;
-        end
         tr = maketree(bb,op);       % compute aabb-tree       
     end
     
