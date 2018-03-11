@@ -53,7 +53,7 @@ function [tp,tj,tr] = findtria(pp,tt,pj,varargin)
 
 %   Darren Engwirda : 2014 --
 %   Email           : de2363@columbia.edu
-%   Last updated    : 05/07/2017
+%   Last updated    : 10/03/2018
 
     tp = []; tj = []; tr = []; op = [];
 
@@ -114,15 +114,26 @@ function [tp,tj,tr] = findtria(pp,tt,pj,varargin)
         end
         bb = [bi,bj];
     
-        tr = maketree(bb);          % compute aabb-tree       
+%------------------------------ compute aabb-tree for aabb's
+        if (isempty(op))            % scale against |pj|
+            op.nobj = ceil(size(tt,1) / ...
+                           size(pj,1)) * +4 ;                   
+            op.nobj = max( +32,op.nobj) ;  
+            op.nobj = min(+256,op.nobj) ;
+        end
+        tr = maketree(bb,op);       % compute aabb-tree       
     end
     
 %------------------------------ compute tree-to-vert mapping
     tm = mapvert (tr,pj);
     
 %------------------------------ compute vert-to-tria queries
+    x0 = min(pp,[],1);
+    x1 = max(pp,[],1);
+    rt = prod(x1 - x0) * eps^.8 ;
+
    [ti,ip,tj] = ...
-        queryset (tr,tm,@triakern,pj,pp,tt) ;
+        queryset(tr,tm,@triakern,pj,pp,tt,rt) ;
  
 %------------------------------ re-index onto full obj. list  
     tp = zeros(size(pj,1),2);
@@ -134,7 +145,7 @@ function [tp,tj,tr] = findtria(pp,tt,pj,varargin)
     
 end
 
-function [ip,it] = triakern(pk,tk,pi,pp,tt)
+function [ip,it] = triakern(pk,tk,pi,pp,tt,rt)
 %TESTPTS compute the "point-tria" matches within a tile.
 
     mp = length(pk); mt = length(tk);
@@ -149,7 +160,7 @@ function [ip,it] = triakern(pk,tk,pi,pp,tt)
         tk = tk(:);
 
         in = intria2( ...
-            pp,tt(tk,:),pi(pk,:));
+            pp,tt(tk,:),pi(pk,:),rt);
             
         ip = pk(in) ;
         it = tk(in) ;
@@ -163,7 +174,7 @@ function [ip,it] = triakern(pk,tk,pi,pp,tt)
         tk = tk(:);
 
         in = intria3( ...
-            pp,tt(tk,:),pi(pk,:));
+            pp,tt(tk,:),pi(pk,:),rt);
             
         ip = pk(in) ;
         it = tk(in) ;
@@ -180,7 +191,7 @@ function [ip,it] = triakern(pk,tk,pi,pp,tt)
 
 end
 
-function [in] = intria2(pp,tt,pi)
+function [in] = intria2(pp,tt,pi,rt)
 %INTRIA2 returns TRUE for points enclosed by 2-simplexes.
 
     t1 = tt(:,1); t2 = tt(:,2) ; 
@@ -199,23 +210,15 @@ function [in] = intria2(pp,tt,pi)
     aa(:,3) =(vk(:,1).*vi(:,2) - ...
               vi(:,1).*vk(:,2) ) ;  
     
-%------------------------------- scale tolerance with volume
-    vi = pp(t2,:)-pp(t1,:);
-    vj = pp(t3,:)-pp(t1,:);
-    
-    rt = vi(:,1).*vj(:,2) ...
-       - vi(:,2).*vj(:,1) ;
-    rt = abs(rt) ;
-                     
 %------------------------------- PI is internal if same sign
-    rt = eps^.8 * (.5 * rt) .^ 2 ;
+    rt = rt ^ 2 ;
     in = aa(:,1).*aa(:,2) >= -rt ...
        & aa(:,2).*aa(:,3) >= -rt ...
        & aa(:,3).*aa(:,1) >= -rt ;
         
 end
 
-function [in] = intria3(pp,tt,pi)
+function [in] = intria3(pp,tt,pi,rt)
 %INTRIA3 returns TRUE for points enclosed by 3-simplexes.
 
     t1 = tt(:,1); t2 = tt(:,2) ; 
@@ -257,21 +260,8 @@ function [in] = intria3(pp,tt,pi)
    +v3(:,3).*(v4(:,1).*v1(:,2) - ...
               v4(:,2).*v1(:,1) ) ;
               
-%------------------------------- scale tolerance with volume    
-    v1 = pp(t4,:)-pp(t1,:);
-    v2 = pp(t4,:)-pp(t2,:);
-    v3 = pp(t4,:)-pp(t3,:);
-    
-    rt = abs ( ...
-   +v1(:,1).*(v2(:,2).*v3(:,3) - ...
-              v2(:,3).*v3(:,2) ) ...
-   -v1(:,2).*(v2(:,1).*v3(:,3) - ...
-              v2(:,3).*v3(:,1) ) ...
-   +v1(:,3).*(v2(:,1).*v3(:,2) - ...
-              v2(:,2).*v3(:,1) ) ) ;
-              
 %------------------------------- PI is internal if same sign
-    rt = eps^.8 * (rt / 6.) .^ 2 ;
+    rt = rt ^ 2 ;
     in = aa(:,1).*aa(:,2) >= -rt ...
        & aa(:,1).*aa(:,3) >= -rt ...
        & aa(:,1).*aa(:,4) >= -rt ...
