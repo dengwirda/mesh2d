@@ -1,4 +1,5 @@
-# geom-0.msh file, created by JIGSAW
+# channel.msh file, created by JIGSAW
+# https://github.com/dengwirda/jigsaw-matlab
 mshid=1
 ndims=2
 point=103
