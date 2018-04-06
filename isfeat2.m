@@ -7,7 +7,7 @@ function [is,bv] = isfeat2(pp,ee,tt)
 %   features have angles of greater-than ACOS(+0.8) degrees.
 
 %   Darren Engwirda : 2017 --
-%   Email           : engwirda@mit.edu
+%   Email           : de2363@columbia.edu
 %   Last updated    : 27/01/2017
 
 %---------------------------------------------- basic checks    
