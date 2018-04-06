@@ -11,7 +11,7 @@ function [tscr] = triscr2(pp,tt)
 %   See also TRIAREA, TRIANG2, TRIBAL2
 
 %   Darren Engwirda : 2017 --
-%   Email           : engwirda@mit.edu
+%   Email           : de2363@columbia.edu
 %   Last updated    : 17/01/2017
 
 %--------------------------- compute signed area-len. ratios
