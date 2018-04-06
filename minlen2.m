@@ -6,7 +6,7 @@ function [ll,ei] = minlen2(pp,tt)
 %   the triangulation {VERT,TRIA}.
 
 %   Darren Engwirda : 2017 --
-%   Email           : engwirda@mit.edu
+%   Email           : de2363@columbia.edu
 %   Last updated    : 16/01/2017
 
 %---------------------------------------------- basic checks    
