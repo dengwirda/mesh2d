@@ -28,7 +28,7 @@ function [vert,conn,tria,tnum] = tridiv2(varargin)
 %   See also REFINE2, SMOOTH2
 
 %   Darren Engwirda : 2017 --
-%   Email           : engwirda@mit.edu
+%   Email           : de2363@columbia.edu
 %   Last updated    : 29/01/2017
 
 %---------------------------------------------- extract args
