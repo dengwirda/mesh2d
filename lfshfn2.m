@@ -26,7 +26,7 @@ function [vert,tria,hlfs] = lfshfn2(varargin)
 %   See also TRIHFN2, LIMHFN2, IDXTRI2
 
 %   Darren Engwirda : 2017 --
-%   Email           : engwirda@mit.edu
+%   Email           : de2363@columbia.edu
 %   Last updated    : 24/01/2017
 
 %---------------------------------------------- extract args
