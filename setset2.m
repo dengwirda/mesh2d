@@ -10,7 +10,7 @@ function [same,sloc] = setset2(iset,jset)
 %   See also ISMEMBER 
 
 %   Darren Engwirda : 2017 --
-%   Email           : engwirda@mit.edu
+%   Email           : de2363@columbia.edu
 %   Last updated    : 29/01/2017
 
 %---------------------------------------------- basic checks
