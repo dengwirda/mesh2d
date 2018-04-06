@@ -13,7 +13,7 @@ function [dcos] = triang2(pp,tt)
 %   See also TRISCR2, TRIAREA, TRIBAL2
 
 %   Darren Engwirda : 2017 --
-%   Email           : engwirda@mit.edu
+%   Email           : de2363@columbia.edu
 %   Last updated    : 17/01/2017
 
 %---------------------------------------------- basic checks    
