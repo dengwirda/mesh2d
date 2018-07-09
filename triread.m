@@ -25,11 +25,6 @@ function [vert,edge,tria,tnum] = triread(name)
 %   Email           : de2363@columbia.edu
 %   Last updated    : 01/10/2017
 
-    filename = mfilename('fullpath');
-    filepath = fileparts( filename );
-    
-    addpath([filepath,'/mesh-file']);
-
     vert = []; edge = []; tria = []; tnum = [];
 
 %---------------------------------------------- basic checks

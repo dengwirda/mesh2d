@@ -27,11 +27,6 @@ function [node,PSLG,part] = bfsgeo2(node,PSLG,seed)
 %   Last updated    : 11/10/2017
 %-----------------------------------------------------------
 
-    filename = mfilename('fullpath') ;
-    filepath = fileparts( filename ) ;
-    
-    addpath([filepath,'/aabb-tree']) ;
-
 %---------------------------------------------- basic checks    
     if ( ~isnumeric(node) || ...
          ~isnumeric(PSLG) || ...

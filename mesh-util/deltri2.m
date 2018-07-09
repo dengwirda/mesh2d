@@ -26,11 +26,11 @@ function [vert,conn,tria,tnum] = deltri2(varargin)
 
 %   Darren Engwirda : 2017 --
 %   Email           : de2363@columbia.edu
-%   Last updated    : 10/07/2017
+%   Last updated    : 08/07/2018
 
     vert = []; conn = []; node = []; PSLG = [];
     part = {}; kind = 'constrained'; 
-
+    
 %---------------------------------------------- extract args
     if (nargin>=+1), vert = varargin{1}; end
     if (nargin>=+2), conn = varargin{2}; end

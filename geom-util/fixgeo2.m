@@ -16,15 +16,10 @@ function [node,PSLG,part] = fixgeo2(varargin)
 %   Email           : de2363@columbia.edu
 %   Last updated    : 10/10/2017
 %-----------------------------------------------------------
-    
-    filename = mfilename('fullpath') ;
-    filepath = fileparts( filename ) ;
-    
-    addpath([filepath,'/aabb-tree']) ;
 
-%---------------------------------------------- extract ARGS
     node = []; PSLG = []; part = {};
 
+%---------------------------------------------- extract ARGS
     if (nargin>=+1), node = varargin{1}; end
     if (nargin>=+2), PSLG = varargin{2}; end
     if (nargin>=+3), part = varargin{3}; end

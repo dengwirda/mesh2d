@@ -15,11 +15,6 @@ function [tree] = idxtri2(vert,tria)
 %   Email           : de2363@columbia.edu
 %   Last updated    : 03/07/2017
 
-    filename = mfilename('fullpath');
-    filepath = fileparts( filename );
-    
-    addpath([filepath,'/aabb-tree']);
-
 %---------------------------------------------- basic checks    
     if ( ~isnumeric(vert) || ...
          ~isnumeric(tria) )

@@ -26,9 +26,9 @@ function [tscr] = triscr2(pp,tt)
          + sum((pp(tt(:,3),:)        ...
               - pp(tt(:,1),:)).^2,2) ;
 
-    lrms =(lrms / 3.0) .^ 1.00;
+    lrms =(lrms / 3.0) .^ 1.00 ;
 
-    tscr = scal * area ./ lrms;
+    tscr = scal * area ./ lrms ;
 
 end
 
