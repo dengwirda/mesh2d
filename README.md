@@ -3,8 +3,8 @@
 `MESH2D` is a `MATLAB` / `OCTAVE`-based unstructured mesh-generator for two-dimensional polygonal geometries, providing a range of relatively simple, yet effective two-dimensional meshing algorithms. `MESH2D` includes variations on the "classical" Delaunay refinement technique, a new "Frontal"-Delaunay refinement scheme, a non-linear mesh optimisation method, and auxiliary mesh and geometry pre- and post-processing facilities. 
 
 <p align="center">
-  <img src = "../master/poly-data/lake-1-small.png"> &nbsp &nbsp &nbsp &nbsp
-  <img src = "../master/poly-data/lake-2-small.png">
+  <img src = "../master/poly-data/lake-1.png"> &nbsp &nbsp &nbsp &nbsp
+  <img src = "../master/poly-data/lake-2.png">
 </p>
 
 Algorithms implemented in `MESH2D` are "provably-good" - ensuring convergence, geometrical and topological correctness, and providing guarantees on algorithm termination and worst-case element quality bounds. Support for user-defined "mesh-spacing" functions and "multi-part" geometry definitions is also provided, allowing `MESH2D` to handle a wide range of complex domain types and user-defined constraints. `MESH2D` typically generates very high-quality output, appropriate for a variety of finite-volume/element type applications.
@@ -16,10 +16,17 @@ Algorithms implemented in `MESH2D` are "provably-good" - ensuring convergence, g
 `MESH2D` is a pure `MATLAB` / `OCATVE` package, consisting of a core library + associated utilities:
 
     MESH2D::
-    ├── MAIN-DIR. -- core MESH2D library functions. See REFINE2, SMOOTH2 and TRIDEMO, etc.
+    ├── MAIN-DIR. -- core MESH2D library functions. See REFINE2, SMOOTH2, TRIDEMO, etc.
     ├── aabb-tree -- support for fast spatial indexing, via tree-based data-structures.
-    ├── mesh-file -- support for mesh file text serialisation.
-    └── poly-data -- geometry data for example problems, image cache, etc.
+    ├── geom-util -- geometry processing, repair, etc.
+    ├── hfun-util -- mesh-spacing definitions, limiters, etc.
+    ├── hjac-util -- solver for Hamilton-Jacobi eqn's.
+    ├── mesh-ball -- circumscribing balls, orthogonal balls etc.
+    ├── mesh-cost -- mesh cost/quality functions, etc.
+    ├── mesh-file -- mesh i/o via ASCII serialisation.
+    ├── mesh-util -- meshing/triangulation utility functions.
+    ├── poly-data -- polygon definitions for demo problems, etc.
+    └── poly-test -- fast inclusion test for polygons.
 
 ## `Starting Out`
 
@@ -38,7 +45,9 @@ tridemo( 9); % larger-scale problem, mesh refinement + optimisation.
 tridemo(10); % medium-scale problem, mesh refinement + optimisation. 
 ```
 
-For <a href="https://www.gnu.org/software/octave">`OCTAVE`</a> users, performance can be improved by compiling elements of the `MESH2D` library. Running `compile.m` within the `MESH2D` installation directory will complete the build process (note: requires a `-dev` installation of <a href="https://www.gnu.org/software/octave">`OCTAVE`</a>).
+Note that a call to `libpath()` should be included in `MESH2D` scripts to ensure the `MATLAB` / `OCTAVE` path variable includes all `MESH2D` sub-directories.
+
+For <a href="https://www.gnu.org/software/octave">`OCTAVE`</a> users, performance can be improved by compiling elements of the `MESH2D` library. See `mkoctfile` for additional information (note: requires a `-dev` installation of <a href="https://www.gnu.org/software/octave">`OCTAVE`</a>).
 
 ## `References!`
 
@@ -47,3 +56,5 @@ If you make use of `MESH2D` please include a reference to the following! `MESH2D
 `[1]` - Darren Engwirda, <a href="http://hdl.handle.net/2123/13148">Locally-optimal Delaunay-refinement and optimisation-based mesh generation</a>, Ph.D. Thesis, School of Mathematics and Statistics, The University of Sydney, September 2014.
 
 `[2]` - Darren Engwirda, Unstructured mesh methods for the Navier-Stokes equations, Honours Thesis, School of Aerospace, Mechanical and Mechatronic Engineering, The University of Sydney, November 2005.
+
+

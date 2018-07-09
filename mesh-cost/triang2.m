@@ -14,7 +14,7 @@ function [dcos] = triang2(pp,tt)
 
 %   Darren Engwirda : 2017 --
 %   Email           : de2363@columbia.edu
-%   Last updated    : 17/01/2017
+%   Last updated    : 08/07/2018
 
 %---------------------------------------------- basic checks    
     if (~isnumeric(pp) || ~isnumeric(tt) )
@@ -44,9 +44,9 @@ function [dcos] = triang2(pp,tt)
 %----------------------------------- compute enclosed angles
     dcos = zeros(size(tt,1),3) ;
     
-    ev12 = pp(tt(:,2),:)-pp(tt(:,1),:);
-    ev23 = pp(tt(:,3),:)-pp(tt(:,2),:);
-    ev31 = pp(tt(:,1),:)-pp(tt(:,3),:);
+    ev12 = pp(tt(:,2),:)-pp(tt(:,1),:) ;
+    ev23 = pp(tt(:,3),:)-pp(tt(:,2),:) ;
+    ev31 = pp(tt(:,1),:)-pp(tt(:,3),:) ;
    
     lv11 = sqrt(sum(ev12.^2,2));
     lv22 = sqrt(sum(ev23.^2,2));
@@ -62,6 +62,13 @@ function [dcos] = triang2(pp,tt)
     dcos(:,1) = sum(-ev12.*ev23,2);
     dcos(:,2) = sum(-ev23.*ev31,2);
     dcos(:,3) = sum(-ev31.*ev12,2);
+    
+    dcos(:,1) = max(-1.,dcos(:,1));
+    dcos(:,1) = min(+1.,dcos(:,1));
+    dcos(:,2) = max(-1.,dcos(:,2));
+    dcos(:,2) = min(+1.,dcos(:,2));
+    dcos(:,3) = max(-1.,dcos(:,3));
+    dcos(:,3) = min(+1.,dcos(:,3));
     
     dcos = acos(dcos) * 180. / pi ;
 

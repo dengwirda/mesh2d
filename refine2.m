@@ -42,6 +42,18 @@ function [vert,conn,tria,tnum] = refine2(varargin)
 %   uiring that all angles exceed 30 degrees. Setting RHO2<1 
 %   may lead to non-convergence.
 %
+% - OPTS.REF1 = {'REFINE'}, 'PRESERVE' -- refinement 'flag'
+%   for 1-dimensional faces (i.e. edges). The 'PRESERVE' op-
+%   tion results in minimal refinement, attempting to retain 
+%   the initial edges without further subdivision. Edges are 
+%   split only to satisfy basic geomertical conformance.
+%
+% - OPTS.REF2 = {'REFINE'}, 'PRESERVE' -- refinement 'flag'
+%   for 2-dimensional faces (i.e. trias). The 'PRESERVE' op-
+%   tion results in minimal refinement, attempting to retain 
+%   the initial trias without further subdivision. Trias are 
+%   split only to satisfy basic geomertical conformance. 
+%
 % - OPTS.SIZ1 = {1.333} -- the normalised rel.-length th-
 %   reshold for edge-elements. Each exterior edge is refined 
 %   until LL/HH<SIZ1, where LL is the edge-length, HH is the
@@ -68,7 +80,7 @@ function [vert,conn,tria,tnum] = refine2(varargin)
 %   such cases, HFUN must adopt a signature [HH] = HFUN(PP,
 %   A1,A2,...,AN). HFUN must return positive values.
 %
-%   See also SMOOTH2, TRIDIV2, DRAWSCR, TRIDEMO
+%   See also SMOOTH2, TRIDIV2, TRICOST, TRIDEMO
 
 %   This routine implements a "multi-refinement" variant of
 %   Delaunay-refinement type mesh-generation. Both standard
@@ -92,6 +104,7 @@ function [vert,conn,tria,tnum] = refine2(varargin)
 % * H. Erten & A. Ungor, (2009): "Quality triangulation with 
 %   locally optimal Steiner points", SIAM Journal on Scient-
 %   ific Comp. 31(3), 2103--2130.
+%   http://doi.org/10.1137/080716748
 %
 % * S. Rebay, (1993): "Efficient Unstructured Mesh Generati-
 %   on by Means of Delaunay Triangulation and Bowyer-Watson 
@@ -104,31 +117,28 @@ function [vert,conn,tria,tnum] = refine2(varargin)
 %
 % * J. Ruppert, (1995): "A Delaunay refinement algorithm for 
 %   quality 2-dimensional mesh generation." Journal of Algo-
-%   rithms 18(3), 548--585. 
-
+%   rithms 18(3), 548--585.
+%   http://dx.doi.org/10.1006/jagm.1995.1021 
+%
 %   See also: S. Cheng, T. Dey & J. Shewchuk, (2012): "Dela-
 %   unay mesh generation", CRC Press, for comprehensive cov-
 %   erage of Delaunay-based meshing techniques.
 
 %   A much more advanced, and fully three-dimensional imple-
-%   mentation is available as part of the JIGSAW library. 
-%   For details, see: github.com/dengwirda/jigsaw-matlab.
+%   mentation is available in the JIGSAW library. For addit-
+%   ional information, see: 
+%   https://github.com/dengwirda/jigsaw-matlab
 
 %-----------------------------------------------------------
 %   Darren Engwirda : 2017 --
 %   Email           : de2363@columbia.edu
-%   Last updated    : 19/08/2017
+%   Last updated    : 09/07/2018
 %-----------------------------------------------------------
-    
-    filename = mfilename('fullpath') ;
-    filepath = fileparts( filename ) ;
-    
-    addpath([filepath,'/aabb-tree']) ;
 
-%---------------------------------------------- extract args
     node = []; PSLG = []; part = {}; opts = [] ; 
     hfun = []; harg = {};
 
+%---------------------------------------------- extract args
     if (nargin>=+1), node = varargin{1}; end
     if (nargin>=+2), PSLG = varargin{2}; end
     if (nargin>=+3), part = varargin{3}; end
@@ -136,23 +146,23 @@ function [vert,conn,tria,tnum] = refine2(varargin)
     if (nargin>=+5), hfun = varargin{5}; end
     if (nargin>=+6), harg = varargin(6:end); end
 
-   [opts] = makeopt(opts);
+   [opts] = makeopt(opts) ;
  
 %---------------------------------------------- default EDGE
-    nnod = size(node,1);
+    nnod = size(node,1) ;
     
     if (isempty(PSLG))
         PSLG = [(1:nnod-1)',(2:nnod)'; nnod,1] ;
     end
-    
+      
 %---------------------------------------------- default PART    
-    ncon = size(PSLG,1);
+    ncon = size(PSLG,1) ;
     
     if (isempty(part)), part{1} = (1:ncon)'; end
     
 %---------------------------------------------- basic checks    
     if (~isnumeric(node) || ~isnumeric(PSLG) || ...
-        ~iscell(part) || ~isstruct(opts))
+        ~iscell   (part) || ~isstruct (opts) )
         error('refine2:incorrectInputClass' , ...
             'Incorrect input class.') ;
     end
@@ -162,7 +172,7 @@ function [vert,conn,tria,tnum] = refine2(varargin)
         error('refine2:incorrectDimensions' , ...
             'Incorrect input dimensions.');
     end
-    if (size(node,2)~= +2 || size(PSLG,2)~= +2)
+    if (size(node,2) < +2 || size(PSLG,2) < +2)
         error('refine2:incorrectDimensions' , ...
             'Incorrect input dimensions.');
     end
@@ -182,9 +192,11 @@ function [vert,conn,tria,tnum] = refine2(varargin)
     end
 
 %-------------------------------- prune any non-unique topo. 
-   [PSLG,ivec,jvec] = ...
+   [ivec,ivec,jvec] = ...
         unique(sort(PSLG,+2),'rows') ;
-
+        
+    PSLG = PSLG(ivec,:) ;
+    
     for ppos = +1:length(part)
     
         if ( ~isnumeric(part{ppos}) )
@@ -225,8 +237,8 @@ function [vert,conn,tria,tnum] = refine2(varargin)
     end
     
 %-------------------------------- PASS 0: inflate box bounds
-    vert = node ; tria = []; tnum = []; 
-    conn = PSLG ; iter = +0;
+    vert = node; tria = []; tnum = []; iter = 0 ;
+    conn = PSLG;
 
     vmin = min(vert,[],1);      % inflate bbox for stability
     vmax = max(vert,[],1);
@@ -261,12 +273,12 @@ function [vert,conn,tria,tnum] = refine2(varargin)
     if (~isinf(opts.disp)), fprintf(1,'\n'); end
         
 %-------------------------------- trim extra adjacency info.
-    tria = tria( :,1:3);
+    tria = tria( :,1:3) ;
     
 %-------------------------------- trim vert. - deflate bbox.
     keep = false(size(vert,1),1);
-    keep(tria(:)) = true ;
-    keep(conn(:)) = true ;
+    keep(tria(:)) = true;
+    keep(conn(:)) = true;
   
     redo = zeros(size(vert,1),1);
     redo(keep) = ...
@@ -275,7 +287,7 @@ function [vert,conn,tria,tnum] = refine2(varargin)
     conn = redo(conn);
     tria = redo(tria);
     
-    vert = vert(keep,:);
+    vert = vert(keep,:) ;
     
 end
 
@@ -304,8 +316,8 @@ function [vert,conn,tria,tnum,iter] = ...
     %------------------------------------- build current adj
        [edge,tria] = tricon2(tria,conn) ;
        
-       [feat,ftri] = isfeat2(vert,edge, ...
-                             tria) ;
+       [feat,ftri] = isfeat2(vert, ...
+                             edge,tria) ;
     
         apex = false(size(vert,1), 1) ;
         apex(tria(ftri)) =  true ;
@@ -439,7 +451,7 @@ function [vert,conn,tria,tnum,iter] = ...
 
     ntol = +1.55;
 
-    while  (true)
+    while (strcmpi(opts.ref1,'refine'))
         
         iter = iter + 1 ;
     
@@ -750,7 +762,7 @@ function [vert,conn,tria,tnum,iter] = ...
 
     near = +.775;
     
-    while  (true)
+    while (strcmpi(opts.ref2,'refine'))
     
         iter = iter + 1 ;
 
@@ -787,7 +799,8 @@ function [vert,conn,tria,tnum,iter] = ...
         ttic = tic ;
         
         bal1 = cdtbal1(vert,conn) ;
-        bal2 = cdtbal2(vert,edge,tria) ;
+        bal2 = cdtbal2(vert, ...
+                       edge,tria) ;
         len2 = minlen2(vert,tria) ;
 
         rho2 = bal2(:,+3) ./ len2 ;
@@ -1062,6 +1075,12 @@ function [vert,conn,tria,tnum,iter] = ...
         setset2(conn,edge(ebnd,1:2));
                
         ref1(enot) = false ;
+        
+    %------------------------------------- preserve boundary  
+        if (strcmp(lower(opts.ref1),...
+            'preserve'))
+        ref1(:)    = false ;
+        end
  
     %------------------------------------- refinement points
         new2 = new2(keep,:);
@@ -1139,7 +1158,7 @@ function [opts] = makeopt(opts)
     if (~strcmpi(opts.dtri, 'conforming') && ...
         ~strcmpi(opts.dtri,'constrained') )
         error( ...
-        'refine2:invalidOption','Invalid constraint KIND.'); 
+    'refine2:invalidOption','Invalid constraint DTRI.'); 
     end
     end
 
@@ -1149,7 +1168,27 @@ function [opts] = makeopt(opts)
     if (~strcmpi(opts.kind, 'delfront') && ...
         ~strcmpi(opts.kind, 'delaunay') )
         error( ...
-        'refine2:invalidOption','Invalid refinement KIND.'); 
+    'refine2:invalidOption','Invalid refinement KIND.'); 
+    end
+    end
+    
+    if (~isfield(opts,'ref1'))
+        opts.ref1 = 'refine';
+    else
+    if (~strcmpi(opts.ref1,   'refine') && ...
+        ~strcmpi(opts.ref1, 'preserve') )
+        error( ...
+    'refine2:invalidOption','Invalid refinement REF1.'); 
+    end
+    end
+    
+    if (~isfield(opts,'ref2'))
+        opts.ref2 = 'refine';
+    else
+    if (~strcmpi(opts.ref2,   'refine') && ...
+        ~strcmpi(opts.ref2, 'preserve') )
+        error( ...
+    'refine2:invalidOption','Invalid refinement REF2.'); 
     end
     end
     

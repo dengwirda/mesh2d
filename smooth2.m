@@ -28,7 +28,7 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
 % - OPTS.DISP = {+ 4} -- smoothing verbosity. Set to INF for 
 %   quiet execution.
 %
-%   See also REFINE2, DRAWSCR, TRIDEMO
+%   See also REFINE2, TRICOST, TRIDEMO
 
 %   This routine is loosely based on the DISTMESH algorithm,
 %   employing a "spring-based" analogy to redistribute mesh
@@ -46,15 +46,11 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
 %   Last updated    : 21/07/2017
 %-----------------------------------------------------------
     
-    filename = mfilename('fullpath');
-    filepath = fileparts( filename );
+    vert = []; conn = []; tria = [] ; 
+    tnum = []; 
+    opts = []; hfun = []; harg = {} ;
     
-    addpath([filepath,'/aabb-tree']);
-
-%---------------------------------------------- extract args
-    vert = []; conn = []; tria = []; tnum = [] ; 
-    opts = []; hfun = []; harg = {};
-
+%---------------------------------------------- extract args  
     if (nargin>=+1), vert = varargin{1}; end
     if (nargin>=+2), conn = varargin{2}; end
     if (nargin>=+3), tria = varargin{3}; end

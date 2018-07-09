@@ -41,10 +41,12 @@ function tridemo(demo)
 %-----------------------------------------------------------
 %   Darren Engwirda : 2017 --
 %   Email           : de2363@columbia.edu
-%   Last updated    : 09/06/2017
+%   Last updated    : 09/07/2018
 %-----------------------------------------------------------
 
     close all;
+    
+    libpath();
 
     switch (demo)
         case  0, demo0 ();
@@ -198,7 +200,7 @@ function demo1
     
     opts.kind = 'delaunay';
     opts.rho2 = +1.00 ;
-   
+    
    [vert,etri, ...
     tria,tnum] = refine2(node,edge,[]  ,opts) ;
     
@@ -429,8 +431,8 @@ function demo4
     hvrt = trihfn2(vert,vlfs,tlfs,slfs,hlfs) ;
     hnew = trihfn2(vnew,vlfs,tlfs,slfs,hlfs) ;
     
-    drawscr(vert,etri,tria,tnum,hvrt) ;
-    drawscr(vnew,enew,tnew,tnum,hnew) ;
+    tricost(vert,etri,tria,tnum,hvrt) ;
+    tricost(vnew,enew,tnew,tnum,hnew) ;
            
     drawnow;
     
@@ -576,7 +578,7 @@ function demo5
     title(['MESH-SIZE: KIND=DELAUNAY, |TRIA|=', ...
         num2str(size(tlfs,1))]) ;
         
-    drawscr(vert,etri,tria,tnum);
+    tricost(vert,etri,tria,tnum);
            
     drawnow;
         
@@ -657,7 +659,7 @@ function demo6
     title(['MESH-OPT.: KIND=DELAUNAY, |TRIA|=', ...
         num2str(size(tria,1))]) ;
     
-    drawscr(vert,etri,tria,tnum);
+    tricost(vert,etri,tria,tnum);
            
     drawnow;
     
@@ -675,7 +677,7 @@ function demo7
     filepath = fileparts( filename );
 
     meshfile = ...
-        [filepath,'/poly-data/wavy-channel.msh'];
+        [filepath,'/poly-data/channel.msh'];
 
    [node,edge] = triread( meshfile );
    
@@ -740,8 +742,8 @@ function demo7
     title(['MESH-OPT.: KIND=DELFRONT, |TRIA|=', ...
         num2str(size(tnew,1))]) ;
     
-    drawscr(vert,etri,tria,tnum);       
-    drawscr(vnew,enew,tnew,tnum);
+    tricost(vert,etri,tria,tnum);       
+    tricost(vnew,enew,tnew,tnum);
            
     drawnow;
     
@@ -822,7 +824,7 @@ function demo8
    
     hvrt = feval(hfun,vert) ;
     
-    drawscr(vert,etri,tria,tnum,hvrt) ;
+    tricost(vert,etri,tria,tnum,hvrt) ;
            
     drawnow;
         
@@ -891,7 +893,7 @@ function demo9
     title(['MESH-OPT.: KIND=DELFRONT, |TRIA|=', ...
         num2str(size(tria,1))]) ;
            
-    drawscr(vert,etri,tria,tnum);
+    tricost(vert,etri,tria,tnum);
            
     drawnow;
     
@@ -942,7 +944,7 @@ function demo10
     title(['MESH-OPT.: KIND=DELFRONT, |TRIA|=', ...
         num2str(size(tria,1))]) ;
            
-    drawscr(vert,etri,tria,tnum);
+    tricost(vert,etri,tria,tnum);
            
     drawnow;
     

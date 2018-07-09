@@ -1,7 +1,7 @@
-function drawscr(varargin)
-%DRAWSCR draw quality-metrics for a 2-simplex triangulation
+function tricost(varargin)
+%TRICOST draw quality-metrics for a 2-simplex triangulation
 %embedded in the two-dimensional plane.
-%   DRAWSCR(VERT,EDGE,TRIA,TNUM) draws histograms of quality
+%   TRICOST(VERT,EDGE,TRIA,TNUM) draws histograms of quality
 %   metrics for the triangulation.
 %   VERT is a V-by-2 array of XY coordinates in the triangu-
 %   lation, EDGE is an array of constrained edges, TRIA is a
@@ -13,7 +13,7 @@ function drawscr(varargin)
 %   array of part indexing, such that TNUM(II) is the index 
 %   of the part in which the II-TH triangle resides.
 %
-%   DRAWSCR(...,HVRT) additionally draws histograms of rela-
+%   TRICOST(...,HVRT) additionally draws histograms of rela-
 %   tive edge-length, indicating conformance to the spacing
 %   constraints. HVRT is a V-by-1 array of spacing informat-
 %   ion, per an evaluation of the mesh-size function at the
@@ -24,7 +24,7 @@ function drawscr(varargin)
 %-----------------------------------------------------------
 %   Darren Engwirda : 2017 --
 %   Email           : de2363@columbia.edu
-%   Last updated    : 11/07/2017
+%   Last updated    : 09/07/2018
 %-----------------------------------------------------------
 
     vert = [] ; conn = [] ; tria = [] ; 
@@ -43,7 +43,7 @@ function drawscr(varargin)
          ~isnumeric(tria) || ...
          ~isnumeric(tnum) || ...
          ~isnumeric(hvrt) )
-        error('drawscr:incorrectInputClass' , ...
+        error('tricost:incorrectInputClass' , ...
             'Incorrect input class.') ;
     end
     
@@ -51,13 +51,13 @@ function drawscr(varargin)
     if (ndims(vert) ~= +2 || ...
         ndims(conn) ~= +2 || ...
         ndims(tria) ~= +2 )
-        error('drawscr:incorrectDimensions' , ...
+        error('tricost:incorrectDimensions' , ...
             'Incorrect input dimensions.');
     end
     if (size(vert,2)~= +2 || ...
         size(conn,2) < +2 || ...
         size(tria,2) < +3 )
-        error('drawscr:incorrectDimensions' , ...
+        error('tricost:incorrectDimensions' , ...
             'Incorrect input dimensions.');
     end
 
@@ -67,13 +67,13 @@ function drawscr(varargin)
 %---------------------------------------------- basic checks
     if (min(min(conn(:,1:2))) < +1 || ...
             max(max(conn(:,1:2))) > nvrt )
-        error('drawscr:invalidInputs', ...
+        error('tricost:invalidInputs', ...
             'Invalid EDGE input array.') ;
     end
  
     if (min(min(tria(:,1:3))) < +1 || ...
             max(max(tria(:,1:3))) > nvrt )
-        error('drawscr:invalidInputs', ...
+        error('tricost:invalidInputs', ...
             'Invalid TRIA input array.') ;
     end
 
@@ -122,6 +122,13 @@ function drawscr(varargin)
       
 end
 
+function [mf] = mad(ff)
+%MAD return mean absolute deviation (from the mean).
+
+    mf = mean(abs(ff-mean(ff))) ;
+    
+end
+
 function deghist(dd,ty)
 %DEGHIST draw histogram for "degree" quality-metric.
 
@@ -142,14 +149,28 @@ function deghist(dd,ty)
      
     switch (ty)
     case 'tria4'
+    
+    if ( ~(exist('OCTAVE_VERSION','builtin') > +0) )
         text(-.225,0,'$|d|_{\tau}$',...
             'horizontalalignment','right',...
                 'fontsize',22,'interpreter','latex') ;
+    else
+        text(-.225,0, '|d|_{\tau}' ,...
+            'horizontalalignment','right',...
+                'fontsize',22,'interpreter',  'tex') ;
+    end
         
     case 'tria3'
+    
+    if ( ~(exist('OCTAVE_VERSION','builtin') > +0) )
         text(-.225,0,'$|d|_{f}$',...
             'horizontalalignment','right',...
                 'fontsize',22,'interpreter','latex') ;
+    else
+        text(-.225,0, '|d|_{\tau}' ,...
+            'horizontalalignment','right',...
+                'fontsize',22,'interpreter',  'tex') ;
+    end
         
     end
     
@@ -203,41 +224,86 @@ function anghist(ad,ty)
     mina = max(1.000,min(ad)); %%!! so that axes don't obscure!
     maxa = min(179.0,max(ad));
     
+    bara = mean(ad(:));
+    mada = mad (ad(:));
+    
     line([ mina, mina],...
         [0,max(hc)],'color','r','linewidth',1.5);
     line([ maxa, maxa],...
         [0,max(hc)],'color','r','linewidth',1.5);
     
     if ( mina > 25.0)
-        text(mina-1.8,.9*max(hc),num2str(min(ad),'%16.1f'),...
+        text(mina-1.8,.90*max(hc),num2str(min(ad),'%16.1f'),...
             'horizontalalignment',...
-                'right','fontsize',16) ;
+                'right','fontsize',15) ;
     else
-        text(mina+1.8,.9*max(hc),num2str(min(ad),'%16.1f'),...
+        text(mina+1.8,.90*max(hc),num2str(min(ad),'%16.1f'),...
             'horizontalalignment',...
-                'left' ,'fontsize',16) ;
+                'left' ,'fontsize',15) ;
     end
     
     if ( maxa < 140.)
-        text(maxa+1.8,.9*max(hc),num2str(max(ad),'%16.1f'),...
+        text(maxa+1.8,.90*max(hc),num2str(max(ad),'%16.1f'),...
             'horizontalalignment',...
-                'left' ,'fontsize',16) ;    
+                'left' ,'fontsize',15) ; 
     else
-        text(maxa-1.8,.9*max(hc),num2str(max(ad),'%16.1f'),...
+        text(maxa-1.8,.90*max(hc),num2str(max(ad),'%16.1f'),...
             'horizontalalignment',...
-                'right','fontsize',16) ;     
+                'right','fontsize',15) ;     
     end
-   
+    
+    if ( maxa < 100.)
+    
+    if ( ~(exist('OCTAVE_VERSION','builtin') > +0) )
+        text(maxa-16.,.45*max(hc),...
+        '$\bar{\sigma}_{\theta}\!= $',...
+            'horizontalalignment', 'left',...
+                'fontsize',16,'interpreter','latex') ;
+    
+        text(maxa+1.8,.45*max(hc),num2str(mad(ad),'%16.2f'),...
+            'horizontalalignment',...
+                'left' ,'fontsize',15) ;             
+    end
+                
+    else
+    
+    if ( ~(exist('OCTAVE_VERSION','builtin') > +0) )
+        text(maxa-16.,.45*max(hc),...
+        '$\bar{\sigma}_{\theta}\!= $',...
+            'horizontalalignment', 'left',...
+                'fontsize',16,'interpreter','latex') ;
+    
+        text(maxa+1.8,.45*max(hc),num2str(mad(ad),'%16.3f'),...
+            'horizontalalignment',...
+                'left' ,'fontsize',15) ;
+    end
+                
+    end
+    
     switch (ty)
     case 'tria4'
+    
+    if ( ~(exist('OCTAVE_VERSION','builtin') > +0) )
         text(-9.0,0.0,'$\theta_{\tau}$',...
             'horizontalalignment','right',...
                 'fontsize',22,'interpreter','latex') ;
+    else
+        text(-9.0,0.0, '\theta_{\tau}' ,...
+            'horizontalalignment','right',...
+                'fontsize',22,'interpreter',  'tex') ;
+    end
         
     case 'tria3'
+    
+    if ( ~(exist('OCTAVE_VERSION','builtin') > +0) )
         text(-9.0,0.0,'$\theta_{f}$',...
             'horizontalalignment','right',...
                 'fontsize',22,'interpreter','latex') ;
+    else
+        text(-9.0,0.0, '\theta_{f}' ,...
+            'horizontalalignment','right',...
+                'fontsize',22,'interpreter',  'tex') ;
+    end
         
     end
     
@@ -252,13 +318,13 @@ function scrhist(sc,ty)
     hc = histc(sc,be);
 
     switch (ty)   
-    case 'tria4'
+    case{'tria4','dual4'}
         poor = bm <  .25 ;
         okay = bm >= .25 & bm <  .50 ;
         good = bm >= .50 & bm <  .75 ;
         best = bm >= .75 ;
     
-    case 'tria3'
+    case{'tria3','dual3'}
         poor = bm <  .30 ;
         okay = bm >= .30 & bm <  .60 ;
         good = bm >= .60 & bm <  .90 ;
@@ -295,26 +361,70 @@ function scrhist(sc,ty)
     if ( mins > .4)
         text(mins-.01,.9*max(hc),num2str(min(sc),'%16.3f'),...
             'horizontalalignment',...
-                'right','fontsize',16) ;
+                'right','fontsize',15) ;
     else
         text(mins+.01,.9*max(hc),num2str(min(sc),'%16.3f'),...
             'horizontalalignment',...
-                'left' ,'fontsize',16) ;
+                'left' ,'fontsize',15) ;
     end
     
+    if ( mean(sc) > mins + .150)
     text(mean(sc)-.01,.9*max(hc),num2str(mean(sc),'%16.3f'),...
-        'horizontalalignment','right','fontsize',16) ;
+        'horizontalalignment','right','fontsize',15) ;
+    end
     
     switch (ty)
     case 'tria4'
-        text(-.05,0.0,'$v_{\tau}$',...
+    
+    if ( ~(exist('OCTAVE_VERSION','builtin') > +0) )
+        text(-.04,0.0, ...
+        '$\mathcal{Q}^{\mathcal{T}}_{\tau}$',...
             'horizontalalignment','right',...
                 'fontsize',22,'interpreter','latex') ;
+    else
+        text(-.04,0.0,'Q^{t}_{\tau}',...
+            'horizontalalignment','right',...
+                'fontsize',22,'interpreter',  'tex') ;
+    end
         
     case 'tria3'
-        text(-.05,0.0,'$a_{f}$',...
+        
+    if ( ~(exist('OCTAVE_VERSION','builtin') > +0) )
+        text(-.04,0.0, ...
+        '$\mathcal{Q}^{\mathcal{T}}_{f}$',...
             'horizontalalignment','right',...
                 'fontsize',22,'interpreter','latex') ;
+    else
+        text(-.04,0.0,'Q^{t}_{f}',...
+            'horizontalalignment','right',...
+                'fontsize',22,'interpreter',  'tex') ;
+    end
+           
+    case 'dual4'
+        
+    if ( ~(exist('OCTAVE_VERSION','builtin') > +0) )
+        text(-.04,0.0, ...
+        '$\mathcal{Q}^{\mathcal{D}}_{\tau}$',...
+            'horizontalalignment','right',...
+                'fontsize',22,'interpreter','latex') ;
+    else
+        text(-.04,0.0,'Q^{d}_{\tau}',...
+            'horizontalalignment','right',...
+                'fontsize',22,'interpreter',  'tex') ;
+    end
+        
+    case 'dual3'
+        
+    if ( ~(exist('OCTAVE_VERSION','builtin') > +0) )
+        text(-.04,0.0, ...
+        '$\mathcal{Q}^{\mathcal{D}}_{f}$',...
+            'horizontalalignment','right',...
+                'fontsize',22,'interpreter','latex') ;
+    else
+        text(-.04,0.0,'Q^{d}_{f}',...
+            'horizontalalignment','right',...
+                'fontsize',22,'interpreter',  'tex') ;
+    end
         
     end
     
@@ -352,14 +462,34 @@ function hfnhist(hf,ty)
             14,'linewidth',2.,'ticklength',[.025,.025],...
                 'box','off','xlim',[0.,2.]);
     
-    line([mean(hf),mean(hf)],...
+    line([max(hf),max(hf)],...
         [0,max(hc)],'color','r','linewidth',1.5);
     
-    text(mean(hf)+.02,.9*max(hc),num2str(mean(hf),'%16.2f'),...
-        'horizontalalignment','left','fontsize',16);
+    text(max(hf)+.02,.90*max(hc),num2str(max(hf),'%16.2f'),...
+        'horizontalalignment','left','fontsize',15) ;
+        
+    if ( ~(exist('OCTAVE_VERSION','builtin') > +0) )
     
-    text(-0.100,0.0,'$h_{r}$','horizontalalignment','right',...
-        'fontsize',22,'interpreter','latex');
+    text(max(hf)-.18,.45*max(hc),'$\bar{\sigma}_{h}\! = $',...
+        'horizontalalignment','left',...
+            'fontsize',16,'interpreter','latex') ;
+
+    text(max(hf)+.02,.45*max(hc),num2str(mad(hf),'%16.2f'),...
+        'horizontalalignment','left','fontsize',15) ;
+        
+    end
+    
+    if ( ~(exist('OCTAVE_VERSION','builtin') > +0) )
+    
+    text(-0.10,0.0,'$h_{r}$','horizontalalignment','right',...
+        'fontsize',22,'interpreter','latex') ;
+
+    else
+    
+    text(-0.10,0.0, 'h_{r}' ,'horizontalalignment','right',...
+        'fontsize',22,'interpreter',  'tex') ;
+    
+    end
     
 end
 
