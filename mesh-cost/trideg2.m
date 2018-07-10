@@ -3,20 +3,18 @@ function [vdeg] = trideg2(pp,tt)
 %ex triangulation.
 %   [VDEG] = TRIDEG2(VERT,TRIA) returns the no. of triangles 
 %   incident to each vertex. VDEG is a V-by-1 array of vert-
-%   ex degrees, VERT is a V-by-2 array of XY coordinates, 
+%   ex degrees, VERT is a V-by-D array of XY coordinates, 
 %   and TRIA is a T-by-3 array of vertex indexing, where 
-%   each row defines a triangle, 
-%   such that VERT(TRIA(II,1),:), VERT(TRIA(II,2),:) and 
+%   each row defines a triangle, such that 
+%   VERT(TRIA(II,1),:), VERT(TRIA(II,2),:) and 
 %   VERT(TRIA(II,3),:) are the coordinates of the II-TH tri-
 %   angle.
 %
-%   See also TRISCR2, TRIAREA, TRIANG2, TRIBAL2
+%   See also TRISCR2, TRIVOL2, TRIANG2, TRIBAL2
 
-%-----------------------------------------------------------
 %   Darren Engwirda : 2017 --
 %   Email           : de2363@columbia.edu
-%   Last updated    : 09/06/2017
-%-----------------------------------------------------------
+%   Last updated    : 10/07/2018
 
 %---------------------------------------------- basic checks    
     if (~isnumeric(pp) || ~isnumeric(tt) )
@@ -29,7 +27,7 @@ function [vdeg] = trideg2(pp,tt)
         error('trideg2:incorrectDimensions' , ...
             'Incorrect input dimensions.');
     end
-    if (size(pp,2)~= +2 || size(tt,2) < +3 )
+    if (size(pp,2) < +2 || size(tt,2) < +3 )
         error('trideg2:incorrectDimensions' , ...
             'Incorrect input dimensions.');
     end
@@ -45,13 +43,11 @@ function [vdeg] = trideg2(pp,tt)
     end
 
 %------------------------------------- compute vertex degree
-    tvec = (+1 : ntri)';
-
-    sdeg = sparse(tt(:,1:3),[tvec,tvec,tvec],+1,nvrt,ntri) ;
-    
-    vdeg = ...
-    sdeg * ones(ntri,1);
+    vdeg = sum(sparse( ...
+        tt(:,1:3),repmat( ...
+            (1:ntri)',1,3),+1,nvrt,ntri),2) ;
     
 end
+
 
 
