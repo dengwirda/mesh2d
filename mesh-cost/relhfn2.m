@@ -1,58 +1,60 @@
-function [hrel] = relhfn2(pp,tt,hv)
+function [hrel] = relhfn2(vert,tria,hvrt)
 %RELHFN2 calc. relative edge-length for a 2-simplex triangu-
-%lation embedded in the two-dimensional plane.
-%   [HREL] = RELHFN2(VERT,TRIA) returns the rel. edge-len.,
-%   indicating conformance to the imposed mesh-spacing cons-
-%   traints, where HREL is a E-by-1 vector, VERT is a V-by-2 
-%   array of XY coordinates, and TRIA is a T-by-3 array of
-%   vertex indexing, where each row defines a triangle, such 
-%   that VERT(TRIA(II,1),:), VERT(TRIA(II,2),:) and VERT(
-%   TRIA(II,3),:) are the coordinates of the II-TH triangle.
+%lation embedded in euclidean space.
+%   [HREL] = RELHFN2(VERT,TRIA,HVRT) returns the relative 
+%   edge-length, indicating conformance to the imposed mesh-
+%   spacing constraints, where HREL is a E-by-1 vector, VERT 
+%   is a V-by-D array of XY coordinates, TRIA is a T-by-3 
+%   array of vertex indexing, and HVRT is a V-by-1 array of
+%   mesh-spacing values associated with the mesh vertices.  
 %
-%   See also TRISCR2, TRIAREA, TRIANG2, TRIBAL2
+%   See also TRISCR2, TRIVOL2, TRIANG2, TRIBAL2
 
 %   Darren Engwirda : 2017 --
 %   Email           : de2363@columbia.edu
-%   Last updated    : 11/07/2017
+%   Last updated    : 10/08/2018
 
 %---------------------------------------------- basic checks    
-    if (~isnumeric(pp) || ~isnumeric(tt) ||   ...
-        ~isnumeric(hv) )
+    if (~isnumeric(vert) || ~isnumeric(tria) ||   ...
+        ~isnumeric(hvrt) )
         error('relhfn2:incorrectInputClass' , ...
             'Incorrect input class.') ;
     end
     
 %---------------------------------------------- basic checks
-    if (ndims(pp) ~= +2 || ndims(tt) ~= +2 )
+    if (ndims(vert) ~= +2 || ndims(tria) ~= +2)
         error('relhfn2:incorrectDimensions' , ...
             'Incorrect input dimensions.');
     end
-    if (size(pp,2)~= +2 || size(tt,2) < +3 )
+    if (size(vert,2)~= +2 || size(tria,2) < +3)
         error('relhfn2:incorrectDimensions' , ...
             'Incorrect input dimensions.');
     end
-    if (size(hv,2)~= +1 || size(hv,1) ~= size(pp,1) )
+    if (size(hvrt,2)~= +1 || size(hvrt,1) ~= size(vert,1) )
         error('relhfn2:incorrectDimensions' , ...
             'Incorrect input dimensions.');
     end
 
-    nnod = size(pp,1) ;
+    nnod = size(vert,1) ;
 
 %---------------------------------------------- basic checks
-    if (min(min(tt(:,1:3))) < +1 || ...
-            max(max(tt(:,1:3))) > nnod )
+    if (min(min(tria(:,1:3))) < +1 || ...
+            max(max(tria(:,1:3))) > nnod )
         error('relhfn2:invalidInputs', ...
             'Invalid TRIA input array.') ;
     end
 
 %----------------------------------- compute rel. mesh-sizes
-   [ee,tt] = tricon2(tt);
+    eset = unique2([ ...
+        tria(:,[1,2]); tria(:,[2,3])
+        tria(:,[3,1])
+                   ]);
    
-    evec = pp(ee(:,2),:)-pp(ee(:,1),:) ;
+    evec = vert(eset(:,2),:)-vert(eset(:,1),:) ;
          
     elen = sqrt(sum(evec.^2,+2));
 
-    hmid = hv(ee(:,2),:)+hv(ee(:,1),:) ;
+    hmid = hvrt(eset(:,2),:)+hvrt(eset(:,1),:) ;
     hmid = hmid * +0.50 ;
     hrel = elen ./ hmid ;
 
