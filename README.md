@@ -45,7 +45,7 @@ tridemo( 9); % larger-scale problem, mesh refinement + optimisation.
 tridemo(10); % medium-scale problem, mesh refinement + optimisation. 
 ```
 
-Note that a call to `libpath()` should be included in `MESH2D` scripts to ensure the `MATLAB` / `OCTAVE` path variable includes all `MESH2D` sub-directories.
+Note that a call to `initmsh()` should be included in `MESH2D` scripts to ensure the `MATLAB` / `OCTAVE` path variable includes all `MESH2D` sub-directories.
 
 For <a href="https://www.gnu.org/software/octave">`OCTAVE`</a> users, performance can be improved by compiling elements of the `MESH2D` library. See `mkoctfile` for additional information (note: requires a `-dev` installation of <a href="https://www.gnu.org/software/octave">`OCTAVE`</a>).
 
