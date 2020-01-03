@@ -1,4 +1,4 @@
-function [stat] = inpoly2(varargin)
+function [stat,bnds] = inpoly2(varargin)
 %INPOLY2 compute "points-in-polygon" queries.  
 %   [STAT] = INPOLY2(VERT,NODE,EDGE) returns the "inside/ou-
 %   tside" status for a set of vertices VERT and a polygon 
@@ -15,6 +15,12 @@ function [stat] = inpoly2(varargin)
 %   inates of the endpoints of the KK-TH edge. If the argum-
 %   ent EDGE is omitted it assumed that the vertices in NODE
 %   are connected in ascending order.
+%
+%   [STAT,BNDS] = INPOLY2(..., FTOL) also returns an N-by-1 
+%   logical array BNDS, with BNDS(II) = TRUE if VERT(II,:)
+%   lies "on" a boundary segment, where FTOL is a floating-
+%   point tolerance for boundary comparisons. By default, 
+%   FTOL = EPS ^ 0.85.
 %
 %   See also INPOLYGON
 
@@ -45,14 +51,17 @@ function [stat] = inpoly2(varargin)
 
 %   Darren Engwirda : 2017 --
 %   Email           : de2363@columbia.edu
-%   Last updated    : 17/07/2017
+%   Last updated    : 27/10/2018
 
 %---------------------------------------------- extract args
-    node = []; edge = []; vert = [];
-
+    node = []; edge = []; vert = []; 
+    
+    fTOL = eps ^ .85;
+    
     if (nargin>=+1), vert = varargin{1}; end
     if (nargin>=+2), node = varargin{2}; end
     if (nargin>=+3), edge = varargin{3}; end
+    if (nargin>=+4), fTOL = varargin{4}; end
     
 %---------------------------------------------- default args
     nnod = size(node,1) ;
@@ -65,7 +74,8 @@ function [stat] = inpoly2(varargin)
 %---------------------------------------------- basic checks    
     if ( ~isnumeric(node) || ...
          ~isnumeric(edge) || ...
-         ~isnumeric(vert) )
+         ~isnumeric(vert) || ...
+         ~isnumeric(fTOL) )
         error('inpoly2:incorrectInputClass' , ...
             'Incorrect input class.') ;
     end
@@ -73,7 +83,8 @@ function [stat] = inpoly2(varargin)
 %---------------------------------------------- basic checks
     if (ndims(node) ~= +2 || ...
         ndims(edge) ~= +2 || ...
-        ndims(vert) ~= +2 )
+        ndims(vert) ~= +2 || ...
+        numel(fTOL) ~= +1 )
         error('inpoly2:incorrectDimensions' , ...
             'Incorrect input dimensions.');
     end
@@ -96,6 +107,8 @@ function [stat] = inpoly2(varargin)
     vmax = max(vert,[],1);
     ddxy = vmax - vmin ;
     
+    lbar = sum(ddxy) / 2.;
+    
     if (ddxy(1) > ddxy(2))
     vert = vert(:,[2,1]) ;
     node = node(:,[2,1]) ;
@@ -108,11 +121,11 @@ function [stat] = inpoly2(varargin)
          
     edge(swap,[1,2]) = ...
         edge(swap,[2,1]) ;    
-        
+       
    [~,ivec] = ...
         sort(vert(:,+2)) ;
     vert = vert (ivec,:) ;
-
+    
     if (exist( ...
         'OCTAVE_VERSION','builtin')  > +0)
     
@@ -121,15 +134,17 @@ function [stat] = inpoly2(varargin)
     %-- delegate to the compiled version of the code if it's
     %-- available
         
-       [stat] = ...
-           inpoly2_oct(vert,node,edge) ;
+       [stat,bnds] = ...
+            inpoly2_oct( ...
+                vert,node,edge,fTOL,lbar) ;
     
     else
    
     %-- otherwise, just call the native m-code version
    
-       [stat] = ...
-           inpoly2_def(vert,node,edge) ;
+       [stat,bnds] = ...
+            inpoly2_mat( ...
+                vert,node,edge,fTOL,lbar) ;
    
     end
    
@@ -138,12 +153,14 @@ function [stat] = inpoly2(varargin)
     %-- MATLAB's JIT is generally smart enough these days to
     %-- run this efficiently
         
-       [stat] = ...
-           inpoly2_def(vert,node,edge) ;
+       [stat,bnds] = ...
+            inpoly2_mat( ...
+                vert,node,edge,fTOL,lbar) ;
         
     end
     
     stat(ivec) = stat ;
+    bnds(ivec) = bnds ;
 
 end
 
