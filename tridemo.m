@@ -46,7 +46,7 @@ function tridemo(demo)
 
     close all;
     
-    libpath();
+    initmsh();
 
     switch (demo)
         case  0, demo0 ();
