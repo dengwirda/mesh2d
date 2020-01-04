@@ -6,7 +6,7 @@ The `AABB-TREE` toolbox provides d-dimensional `aabb-tree` construction and sear
 
 Given a collection of objects, an `aabb-tree` partitions the axis-aligned bounding-boxes (`AABB`'s) associated with the elements in the collection into a (binary) "tree" -- a hierarchy of "nodes" (hyper-rectangles) that each store a subset of the collection. In contrast to other geometric tree types (`quadtrees`, `kd-trees`, etc), `aabb-trees` are applicable to collections of general objects, rather than just points. 
 
-### `Starting Out`
+### `Quickstart`
 
 After downloading and unzipping the current <a href="https://github.com/dengwirda/aabb-tree/archive/master.zip">repository</a>, navigate to the installation directory within <a href="http://www.mathworks.com">`MATLAB`</a> / <a href="https://www.gnu.org/software/octave">`OCTAVE`</a> and run the set of examples contained in `aabbdemo.m`:
 ````
