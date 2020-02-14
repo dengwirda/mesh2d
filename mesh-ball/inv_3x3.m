@@ -13,7 +13,7 @@ function [II,DA] = inv_3x3(AA)
 
 %   Darren Engwirda : 2018 --
 %   Email           : de2363@columbia.edu
-%   Last updated    : 03/05/2018
+%   Last updated    : 13/02/2020
 
 %---------------------------------------------- basic checks    
     if (  ~isnumeric(AA))
@@ -22,7 +22,7 @@ function [II,DA] = inv_3x3(AA)
     end
     
 %---------------------------------------------- basic checks
-    if (ndims(AA) ~= +3 )
+    if (ndims(AA) >  +3 )
         error('inv_3x3:incorrectDimensions' , ...
             'Incorrect input dimensions.');
     end

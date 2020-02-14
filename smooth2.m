@@ -43,7 +43,7 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
 %-----------------------------------------------------------
 %   Darren Engwirda : 2017 --
 %   Email           : de2363@columbia.edu
-%   Last updated    : 21/07/2017
+%   Last updated    : 13/02/2020
 %-----------------------------------------------------------
     
     vert = []; conn = []; tria = [] ; 
@@ -185,7 +185,7 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
     
     %------------------------------------------ compute scr.
         oscr = triscr2(vert,tria) ;
-        
+
     %------------------------------------------ vert. iter's
         ttic =  tic ;
         
@@ -407,7 +407,8 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
         vnew =[vert(keep,:) ; 
                emid(less,:) ;
               ] ;
-        tnew = redo(tria(:,1:3)) ;
+        tnew = reshape( ...
+            redo(tria(:,+1:3)),[],3) ;
 
         ttmp = sort(tnew,2) ;           %-- filter collapsed
         okay = all( ...
@@ -460,7 +461,8 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
                emid(less,:);
                emid(more,:);
               ] ;
-        conn = redo(conn(:,1:2)) ;
+        conn = reshape( ...
+            redo(conn(:,+1:2)),[],2) ;
         
         tcpu.keep = ...
             tcpu.keep + toc(ttic) ;
@@ -505,8 +507,10 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
     redo(keep) = ...
         (+1:length(find(keep)))';
 
-    conn = redo(conn);
-    tria = redo(tria);
+    conn = ...
+        reshape(redo(conn),[],2);
+    tria = ...
+        reshape(redo(tria),[],3);
     
     vert = vert(keep,:);
     

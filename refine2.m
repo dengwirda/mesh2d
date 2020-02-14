@@ -132,7 +132,7 @@ function [vert,conn,tria,tnum] = refine2(varargin)
 %-----------------------------------------------------------
 %   Darren Engwirda : 2017 --
 %   Email           : de2363@columbia.edu
-%   Last updated    : 09/07/2018
+%   Last updated    : 13/02/2020
 %-----------------------------------------------------------
 
     node = []; PSLG = []; part = {}; opts = [] ; 
@@ -284,8 +284,10 @@ function [vert,conn,tria,tnum] = refine2(varargin)
     redo(keep) = ...
         (+1:length(find(keep)))';
     
-    conn = redo(conn);
-    tria = redo(tria);
+    conn = ...
+        reshape(redo(conn),[],2);
+    tria = ...
+        reshape(redo(tria),[],3);
     
     vert = vert(keep,:) ;
     
