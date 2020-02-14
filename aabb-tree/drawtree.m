@@ -19,10 +19,10 @@ function drawtree(tr,varargin)
 
 %----------------------------------------- find "leaf" nodes
     lf = ~cellfun('isempty', tr.ll) ;
-    
+
     fc = [.95,.95,.55] ;
     ec = [.15,.15,.15] ;
-    
+
 %-------------------------- draw all "leaf" nodes as patches
     switch (size(tr.xx,2))
         case 4
@@ -38,7 +38,7 @@ function drawtree(tr,varargin)
         bb = [(1:np)'+np*0,(1:np)'+np*1,...
               (1:np)'+np*2,(1:np)'+np*3
              ] ;
-            
+
         case 6
 %----------------------------------------------- tree in R^3
         np = numel(find(lf));
@@ -66,16 +66,16 @@ function drawtree(tr,varargin)
               (1:np)'+np*1,(1:np)'+np*0,...
               (1:np)'+np*4,(1:np)'+np*5
              ] ;
-            
+
         otherwise
 %--------------------------- what to do with a tree in R^d!?
         error('scantree:unsupportedDimension', ...
             'Unsupported tree dimensionality.') ;
     end
-    
+
     patch('faces',bb,'vertices',pp,'facecolor',fc,...
         'edgecolor',ec,'facealpha',+.2);
-    
+
 end
 
 

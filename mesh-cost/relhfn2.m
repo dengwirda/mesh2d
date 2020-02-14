@@ -1,12 +1,12 @@
 function [hrel] = relhfn2(vert,tria,hvrt)
 %RELHFN2 calc. relative edge-length for a 2-simplex triangu-
 %lation embedded in euclidean space.
-%   [HREL] = RELHFN2(VERT,TRIA,HVRT) returns the relative 
+%   [HREL] = RELHFN2(VERT,TRIA,HVRT) returns the relative
 %   edge-length, indicating conformance to the imposed mesh-
-%   spacing constraints, where HREL is a E-by-1 vector, VERT 
-%   is a V-by-D array of XY coordinates, TRIA is a T-by-3 
+%   spacing constraints, where HREL is a E-by-1 vector, VERT
+%   is a V-by-D array of XY coordinates, TRIA is a T-by-3
 %   array of vertex indexing, and HVRT is a V-by-1 array of
-%   mesh-spacing values associated with the mesh vertices.  
+%   mesh-spacing values associated with the mesh vertices.
 %
 %   See also TRISCR2, TRIVOL2, TRIANG2, TRIBAL2
 
@@ -14,13 +14,13 @@ function [hrel] = relhfn2(vert,tria,hvrt)
 %   Email           : de2363@columbia.edu
 %   Last updated    : 10/08/2018
 
-%---------------------------------------------- basic checks    
+%---------------------------------------------- basic checks
     if (~isnumeric(vert) || ~isnumeric(tria) ||   ...
         ~isnumeric(hvrt) )
         error('relhfn2:incorrectInputClass' , ...
             'Incorrect input class.') ;
     end
-    
+
 %---------------------------------------------- basic checks
     if (ndims(vert) ~= +2 || ndims(tria) ~= +2)
         error('relhfn2:incorrectDimensions' , ...
@@ -49,9 +49,9 @@ function [hrel] = relhfn2(vert,tria,hvrt)
         tria(:,[1,2]); tria(:,[2,3])
         tria(:,[3,1])
                    ]);
-   
+
     evec = vert(eset(:,2),:)-vert(eset(:,1),:) ;
-         
+
     elen = sqrt(sum(evec.^2,+2));
 
     hmid = hvrt(eset(:,2),:)+hvrt(eset(:,1),:) ;
