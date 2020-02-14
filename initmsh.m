@@ -1,6 +1,6 @@
 function initmsh
 %INITMSH a helper function to set-up MATLAB's path statement
-%for MESH2D. 
+%for MESH2D.
 %
 %   See also REFINE2, SMOOTH2, TRIDEMO
 
@@ -12,10 +12,10 @@ function initmsh
 %
 
 %------------------------------------ push path to utilities
-    
+
     filename = mfilename('fullpath') ;
     filepath = fileparts( filename ) ;
-    
+
     addpath([filepath,'/aabb-tree']) ;
     addpath([filepath,'/geom-util']) ;
     addpath([filepath,'/hfun-util']) ;

@@ -6,7 +6,7 @@ function [dcos] = triang2(pp,tt)
 %   array of the angles subtended at each vertex, VERT is a
 %   V-by-2 array of XY coordinates, and TRIA is a T-by-3 ar-
 %   ray of vertex indexing, where each row defines a triang-
-%   le, such that VERT(TRIA(II,1),:), VERT(TRIA(II,2),:) and 
+%   le, such that VERT(TRIA(II,1),:), VERT(TRIA(II,2),:) and
 %   VERT(TRIA(II,3),:) are the coordinates of the II-TH tri-
 %   angle. Angles are returned in degrees.
 %
@@ -16,12 +16,12 @@ function [dcos] = triang2(pp,tt)
 %   Email           : de2363@columbia.edu
 %   Last updated    : 08/07/2018
 
-%---------------------------------------------- basic checks    
+%---------------------------------------------- basic checks
     if (~isnumeric(pp) || ~isnumeric(tt) )
         error('triang2:incorrectInputClass' , ...
             'Incorrect input class.') ;
     end
-    
+
 %---------------------------------------------- basic checks
     if (ndims(pp) ~= +2 || ndims(tt) ~= +2 )
         error('triang2:incorrectDimensions' , ...
@@ -43,33 +43,33 @@ function [dcos] = triang2(pp,tt)
 
 %----------------------------------- compute enclosed angles
     dcos = zeros(size(tt,1),3) ;
-    
+
     ev12 = pp(tt(:,2),:)-pp(tt(:,1),:) ;
     ev23 = pp(tt(:,3),:)-pp(tt(:,2),:) ;
     ev31 = pp(tt(:,1),:)-pp(tt(:,3),:) ;
-   
+
     lv11 = sqrt(sum(ev12.^2,2));
     lv22 = sqrt(sum(ev23.^2,2));
     lv33 = sqrt(sum(ev31.^2,2));
-    
+
     ev12 = ev12 ./ ...
         lv11(:,ones(1,size(pp,2)));
     ev23 = ev23 ./ ...
         lv22(:,ones(1,size(pp,2)));
     ev31 = ev31 ./ ...
         lv33(:,ones(1,size(pp,2)));
-        
+
     dcos(:,1) = sum(-ev12.*ev23,2);
     dcos(:,2) = sum(-ev23.*ev31,2);
     dcos(:,3) = sum(-ev31.*ev12,2);
-    
+
     dcos(:,1) = max(-1.,dcos(:,1));
     dcos(:,1) = min(+1.,dcos(:,1));
     dcos(:,2) = max(-1.,dcos(:,2));
     dcos(:,2) = min(+1.,dcos(:,2));
     dcos(:,3) = max(-1.,dcos(:,3));
     dcos(:,3) = min(+1.,dcos(:,3));
-    
+
     dcos = acos(dcos) * 180. / pi ;
 
 end

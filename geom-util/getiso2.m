@@ -1,13 +1,13 @@
 function [node,edge] = ...
         getiso2(xpos,ypos,zdat,ilev,filt)
 %GETISO2 extract an iso-contour from a structured two-dimen-
-%sional data-set. 
-%   [NODE,EDGE] = GETISO2(XPOS,YPOS,ZFUN,ZLEV) returns the 
+%sional data-set.
+%   [NODE,EDGE] = GETISO2(XPOS,YPOS,ZFUN,ZLEV) returns the
 %   contour ZFUN(XPOS,YPOS) = ZLEV as a PSLG, by post-proce-
 %   ssing the output of the CONTOUR function. The arguments
-%   XPOS, YPOS and ZFUN must all be N-by-M arrays, and ZLEV 
+%   XPOS, YPOS and ZFUN must all be N-by-M arrays, and ZLEV
 %   a scalar contouring value.
-%   
+%
 %   See also GETNAN2, FIXGEO2, BFSGEO2, REFINE2
 
 %-----------------------------------------------------------
@@ -17,8 +17,8 @@ function [node,edge] = ...
 %-----------------------------------------------------------
 
     if (nargin < +5), filt = +0. ; end
-    
-%---------------------------------------------- basic checks    
+
+%---------------------------------------------- basic checks
     if ( ~isnumeric(xpos) || ...
          ~isnumeric(ypos) || ...
          ~isnumeric(zdat) || ...
@@ -27,7 +27,7 @@ function [node,edge] = ...
         error('getiso2:incorrectInputClass' , ...
             'Incorrect input class.') ;
     end
-    
+
 %---------------------------------------------- basic checks
     if (ndims(xpos) ~= +2 || ...
         ndims(ypos) ~= +2 || ...
@@ -35,19 +35,19 @@ function [node,edge] = ...
         error('getiso2:incorrectDimensions' , ...
             'Incorrect input dimensions.');
     end
-    
+
     if (isvector(xpos))
         xnum = length(xpos);
     else
         xnum = size(xpos,2);
     end
-    
+
     if (isvector(ypos))
         ynum = length(ypos);
     else
         ynum = size(ypos,1);
     end
-    
+
     if (xnum ~= size(zdat,2) || ...
         ynum ~= size(zdat,1) || ...
         numel(ilev) ~= +1 || ...
@@ -64,7 +64,7 @@ function [node,edge] = ...
     node = [] ; edge = [] ; ipos = +1 ;
 
     while (ipos < size(cmat,2))
-       
+
         numc = cmat(2,ipos);
         ppts =[cmat(1,ipos+1:ipos+numc)', ...
                cmat(2,ipos+1:ipos+numc)'
@@ -72,11 +72,11 @@ function [node,edge] = ...
 
         pmin = min(ppts,[],1);
         pmax = max(ppts,[],1);
-        
+
         pdel = pmax - pmin ;
-        
+
         if (min(pdel)>=filt)
-        
+
             if all(ppts(1,:) == ppts(end,:))
 
     %-------------------------------- closed - back to start
@@ -84,7 +84,7 @@ function [node,edge] = ...
            [(1:numc-1)',(2:numc-0)'; numc,1] ;
 
             else
-            
+
     %-------------------------------- open - dangling endpts
             enew = ...
            [(1:numc-1)',(2:numc-0)'] ;
@@ -100,7 +100,7 @@ function [node,edge] = ...
         end
 
         ipos = ipos + numc + 1 ;
-        
+
     end
 
 end

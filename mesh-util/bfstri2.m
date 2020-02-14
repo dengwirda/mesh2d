@@ -11,16 +11,16 @@ function [seen] = bfstri2(PSLG,tria,seed)
 %   Email           : de2363@columbia.edu
 %   Last updated    : 01/10/2017
 %-----------------------------------------------------------
-  
+
     seen = [];
 
-%---------------------------------------------- basic checks    
+%---------------------------------------------- basic checks
     if ( ~isnumeric(tria) || ...
          ~isnumeric(seed) )
         error('bfstri2:incorrectInputClass' , ...
             'Incorrect input class.') ;
     end
-    
+
 %---------------------------------------------- basic checks
     if (ndims(tria) ~= +2 )
         error('bfstri2:incorrectDimensions' , ...
@@ -30,24 +30,24 @@ function [seen] = bfstri2(PSLG,tria,seed)
         error('bfstri2:incorrectDimensions' , ...
             'Incorrect input dimensions.');
     end
-    
-%---------------------------------------------- extra checks   
+
+%---------------------------------------------- extra checks
     if ( ~isempty  (PSLG) )
     if ( ~isnumeric(PSLG) )
         error('bfstri2:incorrectInputClass' , ...
             'Incorrect input class.') ;
     end
-    
+
     if (ndims(PSLG) ~= +2 )
         error('bfstri2:incorrectDimensions' , ...
             'Incorrect input dimensions.');
-    end  
+    end
     if (size(PSLG,2)~= +2 )
         error('bfstri2:incorrectDimensions' , ...
             'Incorrect input dimensions.');
     end
     end
-    
+
 %----------------------------------------- form adj. indices
     ntri = size (tria,1);
 
@@ -63,39 +63,39 @@ function [seen] = bfstri2(PSLG,tria,seed)
     seen = false(ntri,1);
 
     while (nlst >= +1)
-        
+
     %-------------- pop tria from stack top
         next = list(nlst);
-        nlst = nlst-1 ;    
+        nlst = nlst-1 ;
         seen(next) = true;
-    
+
     %-------------- visit 1-ring neighbours
         for eadj = +1 : +3
-        
+
             epos = tria(next,eadj+3);
 
         %---------- find adjacent triangles
             if (edge(epos,5) == 0)
-            
+
             if (next ~= edge(epos,3))
                 tadj  = edge(epos,3);
             else
                 tadj  = edge(epos,4);
-            end         
+            end
 
             if (tadj > +0 && ~seen(tadj))
-                
+
         %---------- add unvisited neighbour
                 seen(tadj) = true ;
                 nlst = nlst+1 ;
                 list(nlst) = tadj ;
-            
+
             end
-                        
+
             end
-                 
+
         end
-        
+
     end
 
 end

@@ -1,21 +1,21 @@
 function [ffun,flag] = limgrad(edge,elen,ffun,dfdx,imax)
-%LIMGRAD impose "gradient-limits" on a function defined over 
+%LIMGRAD impose "gradient-limits" on a function defined over
 %an undirected graph.
 %   [FNEW] = LIMGRAD(EDGE,ELEN,FFUN,DFDX,ITER) computes a
 %   "gradient-limited" function FNEW on the undirected graph
 %   {EDGE,ELEN}, where EDGE is an NE-by-2 array of edge ind-
-%   ices, and ELEN is an NE-by-1 array of edge lengths. 
+%   ices, and ELEN is an NE-by-1 array of edge lengths.
 %   Gradients are limited over the graph edges, such that
 %
 %       ABS(FNEW(N2)-FNEW(N1)) <= ELEN(II) * DFDX,
 %
-%   where N1=EDGE(II,1) and N2=EDGE(II,2) are the two nodes 
+%   where N1=EDGE(II,1) and N2=EDGE(II,2) are the two nodes
 %   in the II-TH edge. An iterative algorithm is used, swee-
 %   ping over an "active-set" of graph edges until converge-
 %   nce is achieved. A maximum of IMAX iterations are done.
 %
 %   [FNEW,FLAG] = LIMGRAD(...) also returns a boolean FLAG,
-%   with FLAG=TRUE denoting convergence. 
+%   with FLAG=TRUE denoting convergence.
 %
 %   See also LIMHFN2
 
@@ -23,7 +23,7 @@ function [ffun,flag] = limgrad(edge,elen,ffun,dfdx,imax)
 %   Email           : de2363@columbia.edu
 %   Last updated    : 18/04/2017
 
-%---------------------------------------------- basic checks    
+%---------------------------------------------- basic checks
     if ( ~isnumeric(edge) || ...
          ~isnumeric(elen) || ...
          ~isnumeric(ffun) || ...
@@ -48,7 +48,7 @@ function [ffun,flag] = limgrad(edge,elen,ffun,dfdx,imax)
         error('limgrad:incorrectDimensions' , ...
             'Incorrect input dimensions.');
     end
-    
+
     nnod = size(ffun,1) ;
 
 %---------------------------------------------- basic checks
@@ -69,77 +69,77 @@ function [ffun,flag] = limgrad(edge,elen,ffun,dfdx,imax)
 
    [nvec,pidx] = sort (nvec) ;
     ivec       = ivec (pidx) ;
-    
+
     mark = false(nnod,1) ;
     mark(edge(:,1)) = true ;
     mark(edge(:,2)) = true ;
-    
+
     idxx = find(diff(nvec) > +0) ;
-    
+
     nptr = zeros(nnod,2) ;
     nptr(:,2) = -1 ;
     nptr(mark,1) = [+1; idxx+1];
     nptr(mark,2) = [idxx; nnod];
-    
+
 %----------------------------- ASET=ITER if node is "active"
     aset = zeros(size(ffun,1),1) ;
-    
-%----------------------------- exhaustive 'til all satisfied 
+
+%----------------------------- exhaustive 'til all satisfied
     ftol = min(ffun) * sqrt(eps) ;
-    
+
     for iter = +1 : imax
-    
+
     %------------------------- find "active" nodes this pass
         aidx = find(aset == iter - 1) ;
-        
+
         if (isempty(aidx)), break; end
-      
+
     %------------------------- reorder => better convergence
        [aval,idxx] = sort(ffun(aidx)) ;
-        
+
         aidx = aidx(idxx);
-       
+
     %------------------------- visit adj. edges and set DFDX
         for ipos = 1 : length(aidx)
             npos = aidx(ipos) ;
             for jpos = nptr(npos,1) ...
                      : nptr(npos,2)
-                
+
                 epos = ivec(jpos,1) ;
-                
+
                 nod1 = edge(epos,1) ;
                 nod2 = edge(epos,2) ;
 
             %----------------- calc. limits about min.-value
                 if (ffun(nod1) > ffun(nod2))
-                
+
                 fun1 = ffun(nod2) ...
                      + elen(epos) * dfdx ;
-                
+
                 if (ffun(nod1) > fun1+ftol)
                     ffun(nod1) = fun1;
                     aset(nod1) = iter;
                 end
 
                 else
-                
+
                 fun2 = ffun(nod1) ...
                      + elen(epos) * dfdx ;
-                    
+
                 if (ffun(nod2) > fun2+ftol)
                     ffun(nod2) = fun2;
                     aset(nod2) = iter;
                 end
-                
+
                 end
-                 
+
             end
         end
-        
+
     end
-     
+
     flag = (iter < imax) ;
-    
+
 end
 
 

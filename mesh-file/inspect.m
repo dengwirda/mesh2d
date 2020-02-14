@@ -13,25 +13,25 @@ function [okay] = inspect(mesh,varargin)
 
     if (nargin >= +2), base = varargin{1}; end
     if (nargin >= +3), item = varargin{2}; end
-    
+
     if (nargin <= +1 || nargin >= +4)
         error('inspect:incorrectNumbInputs' , ...
             'Incorrect number of arguments!') ;
     end
-   
+
     if (~isstruct(mesh))
         error('inspect:incorrectInputClass' , ...
             'MESH must be a valid struct.') ;
     end
     if (~isempty(base) && ~ischar(base))
         error('inspect:incorrectInputClass' , ...
-            'BASE must be a valid string!') ; 
+            'BASE must be a valid string!') ;
     end
     if (~isempty(item) && ~ischar(item))
         error('inspect:incorrectInputClass' , ...
             'ITEM must be a valid string!') ;
     end
-    
+
     if (isempty(item))
 %-- default ITEM kinds given BASE types
     switch (lower(base))
@@ -46,9 +46,9 @@ function [okay] = inspect(mesh,varargin)
         case 'bound', item = 'index' ;
     end
     end
- 
+
     if (isempty(item))
-%-- check whether MESH.BASE exists    
+%-- check whether MESH.BASE exists
     okay = isfield(mesh,base) && ...
             ~isempty(mesh.(base)) ;
     else
@@ -57,7 +57,7 @@ function [okay] = inspect(mesh,varargin)
         isfield(mesh.(base),item) && ...
             ~isempty(mesh.(base).(item)) ;
     end
-    
+
 end
 
 
