@@ -6,7 +6,7 @@ function [bb] = tribal1(pp,ee)
 %   BB = [XC,YC,RC.^2].
 
 %   Darren Engwirda : 2017 --
-%   Email           : de2363@columbia.edu
+%   Email           : d.engwirda@gmail.com
 %   Last updated    : 02/05/2018
 
     bb = pwrbal1(pp,zeros(size(pp,1),1),ee) ;

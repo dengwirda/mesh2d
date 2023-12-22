@@ -8,7 +8,7 @@ function [seen] = bfstri2(PSLG,tria,seed)
 
 %-----------------------------------------------------------
 %   Darren Engwirda : 2017 --
-%   Email           : de2363@columbia.edu
+%   Email           : d.engwirda@gmail.com
 %   Last updated    : 01/10/2017
 %-----------------------------------------------------------
 

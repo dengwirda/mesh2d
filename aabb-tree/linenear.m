@@ -4,7 +4,7 @@ function [ok,tp,tq] = linenear(pa,pb,pc,pd)
 
 %-----------------------------------------------------------
 %   Darren Engwirda : 2017 --
-%   Email           : de2363@columbia.edu
+%   Email           : d.engwirda@gmail.com
 %   Last updated    : 10/10/2017
 %-----------------------------------------------------------
 

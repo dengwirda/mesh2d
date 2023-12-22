@@ -23,7 +23,7 @@ function [hfun] = limhfn2(vert,tria,hfun,dhdx)
 %   Computers 22 (2006): 95-109.
 
 %   Darren Engwirda : 2017 --
-%   Email           : de2363@columbia.edu
+%   Email           : d.engwirda@gmail.com
 %   Last updated    : 18/04/2017
 
 %---------------------------------------------- basic checks

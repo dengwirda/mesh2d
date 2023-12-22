@@ -19,7 +19,7 @@ function [tm,im] = mapvert(tr,pi)
 %   See also QUERYSET, MAPRECT, MAKETREE
 
 %   Darren Engwirda : 2014 --
-%   Email           : de2363@columbia.edu
+%   Email           : d.engwirda@gmail.com
 %   Last updated    : 06/04/2017
 
 %----------------------- call SCANTREE to do the actual work

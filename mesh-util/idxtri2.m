@@ -12,7 +12,7 @@ function [tree] = idxtri2(vert,tria)
 %   See also TRIHFN2, LFSHFN2, MAKETREE
 
 %   Darren Engwirda : 2017 --
-%   Email           : de2363@columbia.edu
+%   Email           : d.engwirda@gmail.com
 %   Last updated    : 03/07/2017
 
 %---------------------------------------------- basic checks

@@ -8,7 +8,7 @@ function [cc] = cdtbal2(pp,ee,tt)
 %   mation regarding the edge array EE.
 
 %   Darren Engwirda : 2017 --
-%   Email           : de2363@columbia.edu
+%   Email           : d.engwirda@gmail.com
 %   Last updated    : 01/10/2017
 
 %---------------------------------------------- basic checks

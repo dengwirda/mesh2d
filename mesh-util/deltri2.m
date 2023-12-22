@@ -25,7 +25,7 @@ function [vert,conn,tria,tnum] = deltri2(varargin)
 %   See also DELAUNAYTRIANGULATION, DELAUNAYTRI, DELAUNAYN
 
 %   Darren Engwirda : 2017 --
-%   Email           : de2363@columbia.edu
+%   Email           : d.engwirda@gmail.com
 %   Last updated    : 08/07/2018
 
     vert = []; conn = []; node = []; PSLG = [];

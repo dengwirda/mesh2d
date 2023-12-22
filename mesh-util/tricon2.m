@@ -14,7 +14,7 @@ function [ee,tt] = tricon2(varargin)
 %   up each triangle.
 
 %   Darren Engwirda : 2014 --
-%   Email           : de2363@columbia.edu
+%   Email           : d.engwirda@gmail.com
 %   Last updated    : 01/10/2017
 
 %---------------------------------------------- extract args

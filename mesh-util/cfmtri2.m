@@ -16,7 +16,7 @@ function [vert,econ,tria] = cfmtri2(vert,econ)
 %   See also DELTRI2, DELAUNAYN
 
 %   Darren Engwirda : 2017 --
-%   Email           : de2363@columbia.edu
+%   Email           : d.engwirda@gmail.com
 %   Last updated    : 07/07/2017
 
 %---------------------------------------------- basic checks

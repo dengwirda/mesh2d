@@ -12,7 +12,7 @@ function [node,edge] = ...
 
 %-----------------------------------------------------------
 %   Darren Engwirda : 2018 --
-%   Email           : de2363@columbia.edu
+%   Email           : d.engwirda@gmail.com
 %   Last updated    : 25/03/2018
 %-----------------------------------------------------------
 

@@ -23,7 +23,7 @@ function [qi,qp,qj] = queryset(tr,tm,fn,varargin)
 %   See also MAPVERT, MAPRECT, MAKETREE
 
 %   Darren Engwirda : 2017 --
-%   Email           : de2363@columbia.edu
+%   Email           : d.engwirda@gmail.com
 %   Last updated    : 07/10/2017
 
     qi = []; qp = []; qj = [];

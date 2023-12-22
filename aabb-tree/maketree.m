@@ -56,7 +56,7 @@ function [tr] = maketree(rp,varargin)
 %   http://hdl.handle.net/2123/13148
 
 %   Darren Engwirda : 2014 --
-%   Email           : de2363@columbia.edu
+%   Email           : d.engwirda@gmail.com
 %   Last updated    : 08/10/2017
 
     tr.xx = []; tr.ii = []; tr.ll = {}; op = [];

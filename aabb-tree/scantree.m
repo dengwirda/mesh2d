@@ -25,7 +25,7 @@ function [tm,im] = scantree(tr,pi,fn)
 %   See also QUERYSET, MAPVERT, MAPRECT, MAKETREE
 
 %   Darren Engwirda : 2014 --
-%   Email           : de2363@columbia.edu
+%   Email           : d.engwirda@gmail.com
 %   Last updated    : 06/04/2017
 
     tm.ii = [] ; tm.ll = {} ;

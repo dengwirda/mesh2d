@@ -6,7 +6,7 @@ function [bb] = cdtbal1(pp,ee)
 %   = [XC,YC,RC.^2].
 
 %   Darren Engwirda : 2017 --
-%   Email           : de2363@columbia.edu
+%   Email           : d.engwirda@gmail.com
 %   Last updated    : 24/03/2017
 
 %---------------------------------------------- basic checks

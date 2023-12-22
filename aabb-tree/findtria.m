@@ -52,7 +52,7 @@ function [tp,tj,tr] = findtria(pp,tt,pj,varargin)
 %   http://hdl.handle.net/2123/13148
 
 %   Darren Engwirda : 2014 --
-%   Email           : de2363@columbia.edu
+%   Email           : d.engwirda@gmail.com
 %   Last updated    : 10/03/2018
 
     tp = []; tj = []; tr = []; op = [];

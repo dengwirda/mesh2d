@@ -17,7 +17,7 @@ function [node,edge] = getnan2(varargin)
 
 %-----------------------------------------------------------
 %   Darren Engwirda : 2017 --
-%   Email           : de2363@columbia.edu
+%   Email           : d.engwirda@gmail.com
 %   Last updated    : 06/10/2017
 %-----------------------------------------------------------
 

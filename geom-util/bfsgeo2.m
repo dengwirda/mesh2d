@@ -23,7 +23,7 @@ function [node,PSLG,part] = bfsgeo2(node,PSLG,seed)
 
 %-----------------------------------------------------------
 %   Darren Engwirda : 2017 --
-%   Email           : de2363@columbia.edu
+%   Email           : d.engwirda@gmail.com
 %   Last updated    : 11/10/2017
 %-----------------------------------------------------------
 

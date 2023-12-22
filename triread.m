@@ -22,7 +22,7 @@ function [vert,edge,tria,tnum] = triread(name)
 %   age: github.com/dengwirda/jigsaw-matlab.
 
 %   Darren Engwirda : 2017 --
-%   Email           : de2363@columbia.edu
+%   Email           : d.engwirda@gmail.com
 %   Last updated    : 01/10/2017
 
     vert = []; edge = []; tria = []; tnum = [];

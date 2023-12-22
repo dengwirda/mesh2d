@@ -42,7 +42,7 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
 
 %-----------------------------------------------------------
 %   Darren Engwirda : 2017 --
-%   Email           : de2363@columbia.edu
+%   Email           : d.engwirda@gmail.com
 %   Last updated    : 13/02/2020
 %-----------------------------------------------------------
 

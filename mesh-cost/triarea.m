@@ -11,7 +11,7 @@ function [area] = triarea(pp,tt)
 %   See also TRISCR2, TRIANG2, TRIBAL2
 
 %   Darren Engwirda : 2017 --
-%   Email           : de2363@columbia.edu
+%   Email           : d.engwirda@gmail.com
 %   Last updated    : 17/01/2017
 
 %---------------------------------------------- basic checks

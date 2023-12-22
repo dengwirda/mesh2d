@@ -12,7 +12,7 @@ function [II,DA] = inv_3x3(AA)
 %   See also INV_2X2
 
 %   Darren Engwirda : 2018 --
-%   Email           : de2363@columbia.edu
+%   Email           : d.engwirda@gmail.com
 %   Last updated    : 13/02/2020
 
 %---------------------------------------------- basic checks

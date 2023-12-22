@@ -6,7 +6,7 @@ function initmsh
 
 %-----------------------------------------------------------
 %   Darren Engwirda : 2017 --
-%   Email           : de2363@columbia.edu
+%   Email           : d.engwirda@gmail.com
 %   Last updated    : 08/07/2018
 %-----------------------------------------------------------
 %

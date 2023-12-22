@@ -17,7 +17,7 @@ function [hval] = trihfn2(test,vert,tria,tree,hfun)
 %   See also LFSHFN2, LIMHFN2, IDXTRI2
 
 %   Darren Engwirda : 2017 --
-%   Email           : de2363@columbia.edu
+%   Email           : d.engwirda@gmail.com
 %   Last updated    : 07/04/2017
 
 %---------------------------------------------- basic checks

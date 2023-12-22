@@ -19,7 +19,7 @@ function [tm,im] = maprect(tr,pr)
 %   See also QUERYSET, MAPVERT, MAKETREE
 
 %   Darren Engwirda : 2017 --
-%   Email           : de2363@columbia.edu
+%   Email           : d.engwirda@gmail.com
 %   Last updated    : 09/04/2017
 
 %----------------------- call SCANTREE to do the actual work

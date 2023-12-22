@@ -6,7 +6,7 @@ function [bb] = pwrbal2(pp,pw,tt)
 %   [XC,YC,RC.^2]. PW is a vector of vertex weights.
 
 %   Darren Engwirda : 2017 --
-%   Email           : de2363@columbia.edu
+%   Email           : d.engwirda@gmail.com
 %   Last updated    : 02/05/2018
 
 %---------------------------------------------- basic checks
