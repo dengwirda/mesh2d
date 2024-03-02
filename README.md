@@ -3,8 +3,8 @@
 `MESH2D` is a `MATLAB` / `OCTAVE`-based unstructured mesh-generator for two-dimensional polygonal geometries, providing a range of relatively simple, yet effective two-dimensional meshing algorithms. `MESH2D` includes variations on the "classical" Delaunay refinement technique, a new "Frontal"-Delaunay refinement scheme, a non-linear mesh optimisation method, and auxiliary mesh and geometry pre- and post-processing facilities. 
 
 <p align="center">
-  <img src = "../master/poly-data/img/lake-1.png"> &nbsp &nbsp &nbsp &nbsp
-  <img src = "../master/poly-data/img/lake-2.png">
+  <img src = "../main/poly-data/img/lake-1.png"> &nbsp &nbsp &nbsp &nbsp
+  <img src = "../main/poly-data/img/lake-2.png">
 </p>
 
 Algorithms implemented in `MESH2D` are "provably-good" - ensuring convergence, geometrical and topological correctness, and providing guarantees on algorithm termination and worst-case element quality bounds. Support for user-defined "mesh-spacing" functions and "multi-part" geometry definitions is also provided, allowing `MESH2D` to handle a wide range of complex domain types and user-defined constraints. `MESH2D` typically generates very high-quality output, appropriate for a variety of finite-volume/element type applications.
