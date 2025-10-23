@@ -132,7 +132,7 @@ function [vert,conn,tria,tnum] = refine2(varargin)
 %-----------------------------------------------------------
 %   Darren Engwirda : 2017 --
 %   Email           : d.engwirda@gmail.com
-%   Last updated    : 13/02/2020
+%   Last updated    : 24/10/2025
 %-----------------------------------------------------------
 
     node = []; PSLG = []; part = {}; opts = [] ;
@@ -1093,11 +1093,11 @@ function [vert,conn,tria,tnum,iter] = ...
 
     %------------------------------------- split constraints
         idx1 = ...
-       (1:size(new1))'+size(vert,1) ;
+       (1:size(new1,1))'+ size(vert,1) ;
 
         idx2 = ...
-       (1:size(new2))'+size(new1,1) ...
-                      +size(vert,1) ;
+       (1:size(new2,1))'+ size(new1,1) ...
+                        + size(vert,1) ;
 
         cnew = [conn( ref1,1), idx1
                 conn( ref1,2), idx1];
